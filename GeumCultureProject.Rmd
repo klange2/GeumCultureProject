@@ -12,6 +12,8 @@ output: html_document
   
 followed instructions: https://github.com/bioc/sangeranalyseR
 
+github acces token: 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li
+
 ``` {r}
 #library(ggplot2)
 library(readxl)
