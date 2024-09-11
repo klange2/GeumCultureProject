@@ -8,7 +8,7 @@ author: "Kacey Lange"
 date: "2024-07-17"
 output: html_document
 ---
-# Libraries ---
+# Libraries
   
 followed instructions: https://github.com/bioc/sangeranalyseR
 
@@ -88,7 +88,7 @@ load("C:/Users/Kacey/Documents/R/Projects/Culture/contigs_object.RData")
 
 Genewiz seq data folder id (ancestor folder id): 112149094632
 
-#there are two different naming conventions for ab1 files for some reason (anas vs mine)
+## there are two different naming conventions for ab1 files for some reason (anas vs mine)
 ``` {r}
 names <- as.vector(list.files('C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/Trace/Pass'))
 
@@ -101,19 +101,17 @@ file.rename(from = names, to=replace)
 
 ## Align sequences and write to FASTA ---
 
-Sangeranalyser defaults to Mott (M1 method) Phred quality cutoff = 30
-(.001 on a log scale). default to 2 reads necessary to build contig
-(i.e. F+R); 20 is default min length of read after trimming; Mott was
-bad b/c we have a lot of random low quality bases interspersed.
-
-*Used trimmomatic algorithm for sliding window (instead of Mott)* so
-that a single low quality base doesnt terminate sequence too early.
-this is a common problem in this data set.
-
-also tried using reference amino acid sequence, but performed much worse
-than normal alignment process consensus amino based on M2 cutoff = 30,
-sliding window =10
+McKenzie:
+Sangeranalyser defaults to Mott (M1 method) Phred quality cutoff = 30(.001 on a log scale). default to 2 reads necessary to build contig(i.e. F+R); 20 is default min length of read after trimming; Mott wasbad b/c we have a lot of random low quality bases interspersed.
+*Used trimmomatic algorithm for sliding window (instead of Mott)* so that a single low quality base doesnt terminate sequence too early.this is a common problem in this data set.
+also tried using reference amino acid sequence, but performed much worsethan normal alignment process consensus amino based on M2 cutoff = 30,sliding window =10
 "FFLLSSSSYY\*\*CC\*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"
+
+Emily:
+The M2 method was bad because there was a lot of uncalled basepairs (i.e W,K,Y,...). With the M1 method, there were much less uncalled basepairs. Use trimming cutoff of 1e-04
+
+Kacey:
+Emily was right and the M1 method was better. There was 45 OTUs with M2 and 56 with M1. I will continue with using M1.To properly make contigs, the samples have to have the same amount of characters. For example, I had to change sample 1-ITSF1.ab1 to 001-ITSF1.ab1 because I have samples with three characters (250-ITSF1.ab1). Without making them the same amount of characters, it will read multiple samples under 1 contig. I don't know if this changes teh data or not?
 
 This generates a new FASTA:
 
@@ -142,52 +140,53 @@ launchApp(contigs)
 
 ```
 
-## T-BAS ---
+# T-BAS
 
-take output FASTA (unaligned) and pass through NCSU ITSx to separate
-various loci of interest (should be ITS1, 5.8S, ITS2, some of LSU)
-
-Retain all metadata for OTU members
-
-ITS locus is included (first FASTA) - filter unknowns to selected taxon and generate UNITE report
-
-Run RDP with UNITE (ITS), FunGuild, and NCBI WWW bastn
-
-McKenzie:
-think I want to classify using Warcup b/c it seems to perform better athigher resolution taxon assignments 
+Mckenzie:
+-take output FASTA (unaligned) and pass through NCSU ITSx to separate various loci of interest (should be ITS1, 5.8S, ITS2, some of LSU)
+-Retain all metadata for OTU members
+-ITS locus is included (first FASTA) - filter unknowns to selected taxon and generate UNITE report
+-Run RDP with UNITE (ITS), FunGuild, and NCBI WWW bastn
+-think I want to classify using Warcup b/c it seems to perform better athigher resolution taxon assignments 
 (there is a citation for this somewhere)
-
-probably don't cluster on only one locus bc that would be dumb/probably
-actually skip clustering altogether bc we want info for each isolate
-
-Create OTU fasta files
-
-McKenzie:
-definitely don't do de novo tree construction, use Evolutionary placement algorithm (bc that will incorporate extant info from TBAS which is the whole point); Emily used de novo though?
+-probably don't cluster on only one locus bc that would be dumb/probably
+-actually skip clustering altogether bc we want info for each isolate
+-Create OTU fasta files
+-definitely don't do de novo tree construction, use Evolutionary placement algorithm (bc that will incorporate extant info from TBAS which is the whole point); Emily used de novo though?
 EPA and EPA ng are very similar, basically differ in computing
 efficiency.
+-3/8/23 don't use RDP classifier b/c they only consider LSU and I don'tthink we actually have enough LSU coverage to solely depend on that
 
-Me:
-RAxML with de novo tree construction
+Kacey:
+-take output FASTA (unaligned) and pass through NCSU ITSx to separate various loci of interest (should be ITS1, 5.8S, ITS2, some of LSU)
+-DO NOT retain all metadata for OTU members. (my data showed the same OTU multiple times in the tree)
+-ITS locus is included (first FASTA) - filter unknowns to selected taxon and generate UNITE report
+-Run RDP with UNITE (ITS), and FunGuild
+-Cluster on only one locus
+-Cluster at 0.99
+-Create OTU fasta files
+-RAxML with de novo tree construction
 
-McKenzie:
-3/8/23 don't use RDP classifier b/c they only consider LSU and I don't
-think we actually have enough LSU coverage to solely depend on that
 
 *use result files from run 6V3PIQ4N. This is good one.*
 
+T-BAS data:
+OTU is the otu name that was input for the isolate name in T-BAS, every isolate has a unique OTU.
+Query.sequence is also unique to each isolate. It is the sample number (1-250).
 
 ```{r}
 geumroot <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveM76GMYAB_/assignments_report_addvoucherM76GMYAB.csv")
 
-colnames(geumroot)[16]<- "otu"
+colnames(geumroot)[16]<- "otu" 
 colnames(geumroot)[1]<- "Query.sequence"
 ```
 
-# Phylogenetic Analysis
+## Phylogenetic Tree
 
-Import TBAS tree, remove outgroup taxa, rename tips to reflect *OTU IDs
-I've been using* since 2020
+TBAS tree with all sequences -> M76GMYAB.nwk
+TBAS tree after selecting all query sequences and pruning the tree -> SAGGBM55.nwk *this is what I want*
+
+Change tip labels to oTU numbers 
 
 ```{r}
 #newtree <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveM76GMYAB_/M76GMYAB.nwk")
@@ -203,54 +202,17 @@ trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T
 trimmednwk$tip.label <- geumroot[[16]][match(trimmednwk$tip.label, geumroot[[1]])]
 #trimmednwk <- ggtree(trimmednwk)+geom_tiplab(size=1)
 #ggsave('C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/otutree.pdf')
+
+plot(trimmednwk)
+
 ```
 
-# Visualize Trait Data on tree
-
-Ultimate goal is single tree that has collection and trait information
-
-Phytools also has some visualization tools but McKenzie prefers ggtree
-bc it's built on ggplot which you probably already know
-
-Need to add different types of variables (traits) separately, since they
-take unique aesthetic mapping regimes
-
-``` {r}
-library(ggtree)
-
-geumroot <- geumroot %>% select(otu, everything())
-kind of weird syntax, but this is how you bind data to tree^
-
-plot <- ggtree(finaltree, branch.length = "none") #%<+% relocate(geumroot, otu, .before = Query.sequence)
-
-plot+geom_label(aes(label=Most.common.order.level.assignment, size=5))+
-  geom_tippoint(aes(color=Guild))+
-  geom_tiplab(offset=5)+
-  theme(legend.position = "none")
-  
-  plot+geom_tippoint(aes(color = color, size=10))+geom_tiplab(offset=.1, size=2)
-  +labs(title = "Origin Site") 
-  +theme(text = element_text(size = 30))
-  + guides(colour = guide_legend(override.aes = list(size=10)))
-```
-
-# Reading in data
+# Culture data
 
 There are multiple OTUs for one species, so this is to clean it up
 
-##### T-BAS data
-
-OTUold is the otu name that was input for the isolate name in T-BAS, every isolate has a unique OTUold. The numbers of OTUold are from Nelle's original T-BAS run and then we added A, B C, etc to them to make them unique.
-Query.sequence is also unique to each isolate. it is the OTUold plus the species name that Nelle's original T-BAS run came up with
-OTU is the new analysis OTU - what I want
-I think I want "Genusspecies" as for the taxonomy. "taxon assignment" is similar to genusspecies but sometimes has multiple taxa listed
-anything with CERVNAZT is from the input data (so from Nelle's data), not what I want
-Kacey's data = RKLYQOAK
-
-##### Culture data
-
-Culture IDs are unique to the sequence
-Query.sequence 14,2,3,4 did not have an ITS region, remove 
+Culture IDs are unique to the sequence. It contains the site, community, and plant individual number.
+Query.sequence 14,2,3,4 were removed from the UNITE filtering, remove.
 
 ```{r}
 culture <- read_sheet("https://docs.google.com/spreadsheets/d/1Ys3msUUPmmOo1NeRqHfsdhJzU_mEwBOytZe6AmAribQ/edit?gid=0#gid=0", sheet = "Sheet1", na='NULL')
@@ -296,22 +258,7 @@ row.names(dat.comm)<-dat3$CommunitySitePL
 
 ```
 
-##### Phylogenetic tree
-note - the uncleaned tree in this directory contains the genus species names attached to the OTU numbers
-
-```{r}
-
-trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveSAGGBM55_/SAGGBM55.nwk")
-
-# tree with OTUs 
-trimmednwk$tip.label <- geumroot[[16]][match(trimmednwk$tip.label, geumroot[[1]])]
-
-plot(trimmednwk)
-
-```
-
-
-##### Faith's Phylogenetic distance
+## Faith's Phylogenetic distance
 
 ```{r}
 
@@ -320,7 +267,7 @@ PD<-pd(dat.comm,trimmednwk)
 dat4<-data.frame(dat3[,1:4],PD,dat3[,5:60])
 ```
 
-##### MPD by plantindividual
+## MPD by CommunitySitePL
 
 ```{r}
 phydist <- cophenetic(trimmednwk)
@@ -348,7 +295,7 @@ head(dat6)
 
 ```
 
-##### phyloseq object
+## Phyloseq Object
 
 ```{r}
 otus<-dat6[,9:64]
@@ -363,17 +310,11 @@ datp <- merge_phyloseq(otu_table(otus2,taxa_are_rows = T), tax_table(taxonomyotu
 unifracp<-unifrac(otus,trimmednwk)
 ```
 
-#### Summary of files
+# Testing Blasting to UNITE
 
-```{r}
-datp #phyloseq object
-head(dat6) #big data frame, wide data format, dat3 plus PD and MPD data
-dat7 #dat6 plus funguild pathogens/symbiotrophs
-dat2 #long dataformat 
-```
-
-###### testing blasting to unite
-unite.ref <- "/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAMarsh/Survey/Stats/Gradient/QIIME2/sh_general_release_dynamic_s_04.02.2020.fasta" 
+Make sure to get the most recently updated reference file from the UNITE database website.
+https://doi.plutof.ut.ee/doi/10.15156/BIO/2959333
+At teh bottom under downloads
 
 taxaonly2 <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/taxaonly.csv")
 
@@ -381,7 +322,7 @@ taxaonly2 <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/ta
 unite.ref <- "C:/Users/Kacey/Documents/Tulane/Lab/Culture/UNITE/sh_general_release_dynamic_s_04.04.2024.fasta"
 
 
-#I got this data from assignments_report_nodups6V3PIQ4N
+#I got this data from assignments_report_nodupsM76GMYAB
 myotus<-read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveM76GMYAB_/assignments_report_nodupsM76GMYAB.csv",header=T);rownames(myotus)<-myotus$abundance
 
 myotus2 <- myotus[,c(21,16)]
@@ -402,7 +343,7 @@ sort(unique(taxaonly$Phylum))
 taxaonly%>%group_by(Phylum)%>%tally()
 ```
 
-##### FunGuild
+## FunGuild
 
 The weird thing about FUNGuildR is that for some taxa, like when I have Fusarium equiseti it matches to Nectriaceae rather than Fusarium in the database. When I used the FUNGUILD in the terminal, it worked better and matched to the lowest taxonomic level. 
 
@@ -495,7 +436,16 @@ phragspartina<-dat7%>%
   filter(HostPlant%in%c('P. australis','S. patens'))
 ```
 
-##### git hub token stuff
+# Summary of files
+
+```{r}
+datp #phyloseq object
+head(dat6) #big data frame, wide data format, dat3 plus PD and MPD data
+dat7 #dat6 plus funguild pathogens/symbiotrophs
+dat2 #long dataformat 
+```
+
+# git hub token stuff
 
 ```{r}
 install.packages("gitcreds")
