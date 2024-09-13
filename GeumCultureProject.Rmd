@@ -168,30 +168,32 @@ Kacey:
 -RAxML with de novo tree construction
 
 
-*use result files from run 6V3PIQ4N. This is good one.*
+*use result files from run 3HXRGT5G. This is good one.*
 
 T-BAS data:
 OTU is the otu name that was input for the isolate name in T-BAS, every isolate has a unique OTU.
 Query.sequence is also unique to each isolate. It is the sample number (1-250).
 
 ```{r}
-geumroot <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveM76GMYAB_/assignments_report_addvoucherM76GMYAB.csv")
+geumroot <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archive3HXRGT5G_/assignments_report_addvoucher3HXRGT5G.csv")
 
 colnames(geumroot)[16]<- "otu" 
 colnames(geumroot)[1]<- "Query.sequence"
+geumroot$Query.sequence <- sprintf("%03d", geumroot$Query.sequence)
+
 ```
 
 ## Phylogenetic Tree
 
-TBAS tree with all sequences -> M76GMYAB.nwk
-TBAS tree after selecting all query sequences and pruning the tree -> SAGGBM55.nwk *this is what I want*
+TBAS tree with all sequences -> 3HXRGT5G.nwk
+TBAS tree after selecting all query sequences and pruning the tree -> PM2RLCID.nwk *this is what I want*
 
 Change tip labels to oTU numbers 
 
 ```{r}
-#newtree <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveM76GMYAB_/M76GMYAB.nwk")
+#newtree <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archive3HXRGT5G_/3HXRGT5G.nwk")
 
-trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveSAGGBM55_/SAGGBM55.nwk")
+trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archivePM2RLCID_/PM2RLCID.nwk")
 
 # tree with species names 
 #trimmednwk$tip.label <- geumroot[[12]][match(trimmednwk$tip.label, geumroot[[1]])]
@@ -212,7 +214,6 @@ plot(trimmednwk)
 There are multiple OTUs for one species, so this is to clean it up
 
 Culture IDs are unique to the sequence. It contains the site, community, and plant individual number.
-Query.sequence 14,2,3,4 were removed from the UNITE filtering, remove.
 
 ```{r}
 culture <- read_sheet("https://docs.google.com/spreadsheets/d/1Ys3msUUPmmOo1NeRqHfsdhJzU_mEwBOytZe6AmAribQ/edit?gid=0#gid=0", sheet = "Sheet1", na='NULL')
@@ -226,11 +227,12 @@ culture2<-culture%>%
            )
 head(culture2)
 
+culture2$Query.sequence <- sprintf("%03d", culture2$Query.sequence)
+
 geumroot2<-geumroot%>%
-  filter(is.na(`otu`)==F,Query.sequence!="14",Query.sequence!="2",Query.sequence!="3",Query.sequence!="4",,Query.sequence!="5")%>%
   unite(CultureID,otu,Taxon.assignment,remove=F)%>%
-  dplyr::select(Query.sequence,CultureID,Community_Type_M76GMYAB,Site_M76GMYAB,Latitude_M76GMYAB,Longitude_M76GMYAB,otu,Trophic.Mode,Guild,Taxon.assignment,GenusSpecies)%>%
-  rename(Community=Community_Type_M76GMYAB,Site=Site_M76GMYAB,Lat=Latitude_M76GMYAB,Long=Longitude_M76GMYAB)%>%
+  dplyr::select(Query.sequence,CultureID,Community_Type_3HXRGT5G,Site_3HXRGT5G,Latitude_3HXRGT5G,Longitude_3HXRGT5G,otu,Trophic.Mode,Guild,Taxon.assignment,GenusSpecies)%>%
+  rename(Community=Community_Type_3HXRGT5G,Site=Site_3HXRGT5G,Lat=Latitude_3HXRGT5G,Long=Longitude_3HXRGT5G)%>%
 mutate(Community = factor(Community, levels = c("DM", "SB", "FF", "MM")),Site = factor(Site, levels = c("P", "Q")))
 head(geumroot2)
 
@@ -253,7 +255,7 @@ dat3<-dat2%>%
   ungroup()%>%
   unite(CommunitySitePL,Community.x,Site,PlantIndividual,remove=F)%>%
   spread(otu,abundance,fill=0)
-dat.comm<-data.frame(dat3[,5:60])
+dat.comm<-data.frame(dat3[,5:39])
 row.names(dat.comm)<-dat3$CommunitySitePL
 
 ```
@@ -264,7 +266,7 @@ row.names(dat.comm)<-dat3$CommunitySitePL
 
 PD<-pd(dat.comm,trimmednwk)
 
-dat4<-data.frame(dat3[,1:4],PD,dat3[,5:60])
+dat4<-data.frame(dat3[,1:4],PD,dat3[,5:39])
 ```
 
 ## MPD by CommunitySitePL
@@ -290,7 +292,7 @@ dat5<-dat4%>%
   full_join(ses.mpd.result.weighted1)
   
   
-dat6<-data.frame(dat5[,1:6],dat5[,63:64],dat5[,7:62])
+dat6<-data.frame(dat5[,1:6],dat5[,42:43],dat5[,7:41])
 head(dat6)
 
 ```
@@ -298,7 +300,7 @@ head(dat6)
 ## Phyloseq Object
 
 ```{r}
-otus<-dat6[,9:64]
+otus<-dat6[,9:43]
 otus2<-t(otus)
 sampleotus<-dat6[,c(1:8)]
 taxonomyotus<-as.matrix(data.frame(Kingdom=row.names(otus2),Phylum=row.names(otus2),Class=row.names(otus2),Order=row.names(otus2),Class=row.names(otus2),Family=row.names(otus2),Genus=row.names(otus2),Species=row.names(otus2)))
@@ -323,7 +325,9 @@ unite.ref <- "C:/Users/Kacey/Documents/Tulane/Lab/Culture/UNITE/sh_general_relea
 
 
 #I got this data from assignments_report_nodupsM76GMYAB
-myotus<-read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveM76GMYAB_/assignments_report_nodupsM76GMYAB.csv",header=T);rownames(myotus)<-myotus$abundance
+myotus<-read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archive3HXRGT5G_/assignments_report_nodups3HXRGT5G.csv",header=T);rownames(myotus)<-myotus$abundance
+
+myotus$Query.sequence <- sprintf("%03d", myotus$Query.sequence)
 
 myotus2 <- myotus[,c(21,16)]
 names(myotus2)[names(myotus2) == 'ITS'] <- 'sequence'
@@ -378,7 +382,9 @@ write.csv(taxaonly2,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/taxa
 python FUNGuild.py taxa -otu taxaonly.txt -format tsv -column taxonomy -classifier unite
 python FUNGuild.py guild -taxa taxaonly.taxa.txt         
 
-guilds<-read.delim("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/FiguresStats/LAmarshCulture/FUNGuild/taxaonly.taxa.guilds.txt")
+guilds <- funguild_assign(taxaonly2)
+
+#guilds<-read.delim("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/FiguresStats/LAmarshCulture/FUNGuild/taxaonly.taxa.guilds.txt")
 View(guilds)
 
 guilds%>%filter(trophicMode==("Pathotroph"))
@@ -430,10 +436,10 @@ temp2<-data.frame(temp,plantpathogen,plantpathogenbroad,plantpathogenbroadprobab
 dat7<-dat6%>%
   full_join(temp2)
 
-phragspartina<-dat6%>%
-  filter(HostPlant%in%c('Phragmites australis','Spartina patens'))
-phragspartina<-dat7%>%
-  filter(HostPlant%in%c('P. australis','S. patens'))
+#phragspartina<-dat6%>%
+  #filter(HostPlant%in%c('Phragmites australis','Spartina patens'))
+#phragspartina<-dat7%>%
+  #filter(HostPlant%in%c('P. australis','S. patens'))
 ```
 
 # Summary of files
