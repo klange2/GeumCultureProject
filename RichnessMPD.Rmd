@@ -188,7 +188,10 @@ ggplot(pdmean,aes(x=HostPlant,y=mean,color=HostPlant,group=HostPlant))+
   geom_line(stat = "identity", position = "identity",size=.5,col="black")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) 
+```
 
+## Stats
+``` {r}
 m1<-gls(PD~HostPlant+Site,data=dat6,na.action=na.omit)
 #m1<-gls(mpd.obs.z.weighted~Site,data=dat6,na.action=na.omit)
 anova(m1,type="marginal")
@@ -265,6 +268,12 @@ ggplot(mpdmean,aes(x=Site,y=mean,color=HostPlant,group=HostPlant))+
 
 options(contrasts=c("contr.helmert","contr.poly"))
 options(contrasts=c("contr.treatment","contr.poly"))
+
+```
+
+## Stats
+
+```{r}
 
 # m1<-gls(mpd.obs.z.weighted~HostPlant+Site,data=dat6,na.action=na.omit)
 # anova(m1,type="marginal")
@@ -393,6 +402,12 @@ ggplot(mpdmean,aes(x=HostPlant,y=mean,color=HostPlant,group=Site))+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) +
   facet_wrap(~Site)#,strip.position = "bottom")
+
+```
+
+## Stats
+
+``` {r}
 
 dm1<-gls(mpd.obs.z~HostPlant+Site,data=dat6,na.action=na.omit)
 m1<-gls(mpd.obs.z~Site,data=dat6,na.action=na.omit)
