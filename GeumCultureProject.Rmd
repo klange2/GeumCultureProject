@@ -111,7 +111,7 @@ Emily:
 The M2 method was bad because there was a lot of uncalled basepairs (i.e W,K,Y,...). With the M1 method, there were much less uncalled basepairs. Use trimming cutoff of 1e-04
 
 Kacey:
-Emily was right and the M1 method was better. There was 45 OTUs with M2 and 56 with M1. I will continue with using M1.To properly make contigs, the samples have to have the same amount of characters. For example, I had to change sample 1-ITSF1.ab1 to 001-ITSF1.ab1 because I have samples with three characters (250-ITSF1.ab1). Without making them the same amount of characters, it will read multiple samples under 1 contig. I don't know if this changes teh data or not?
+Emily was right and the M1 method was better. I will continue with using M1.To properly make contigs, the samples have to have the same amount of characters. For example, I had to change sample 1-ITSF1.ab1 to 001-ITSF1.ab1 because I have samples with three characters (250-ITSF1.ab1). Without making them the same amount of characters, it will read multiple samples under 1 contig in the LaunchApp. I don't know if this changes the data or not? Update: it does change the data and fixing the characters loads the LaunchApp correctly and later on, assigns the guild better. 
 
 This generates a new FASTA:
 
@@ -179,7 +179,7 @@ geumroot <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-B
 
 colnames(geumroot)[16]<- "otu" 
 colnames(geumroot)[1]<- "Query.sequence"
-geumroot$Query.sequence <- sprintf("%03d", geumroot$Query.sequence)
+geumroot$Query.sequence <- sprintf("%03d", geumroot$Query.sequence) #changing the numbers to 3 characters to match the contigs
 
 ```
 
@@ -382,6 +382,7 @@ write.csv(taxaonly2,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/taxa
 python FUNGuild.py taxa -otu taxaonly.txt -format tsv -column taxonomy -classifier unite
 python FUNGuild.py guild -taxa taxaonly.taxa.txt         
 
+#the data frame that goes into the funguildR has to have a column named "Taxonomy" (has to be uppercase) and include your otu numbers too
 taxaonly3<-data.frame(myotus2[,2],taxaonly2[,2:9])
 colnames(taxaonly3)[1] <- "OTU"
 colnames(taxaonly3)[9] <- "Taxonomy"
@@ -443,10 +444,6 @@ dat7<-dat6%>%
 
 write.csv(dat7,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/GeumMastersheet.csv")
 
-#phragspartina<-dat6%>%
-  #filter(HostPlant%in%c('Phragmites australis','Spartina patens'))
-#phragspartina<-dat7%>%
-  #filter(HostPlant%in%c('P. australis','S. patens'))
 ```
 
 # Summary of files
