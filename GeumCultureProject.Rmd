@@ -382,7 +382,12 @@ write.csv(taxaonly2,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/taxa
 python FUNGuild.py taxa -otu taxaonly.txt -format tsv -column taxonomy -classifier unite
 python FUNGuild.py guild -taxa taxaonly.taxa.txt         
 
-guilds <- funguild_assign(taxaonly2)
+taxaonly3<-data.frame(myotus2[,2],taxaonly2[,2:9])
+colnames(taxaonly3)[1] <- "OTU"
+colnames(taxaonly3)[9] <- "Taxonomy"
+#taxaonly3$OTU <- stringr::str_replace(taxaonly3$OTU, '\\OTU', '')
+
+guilds <- funguild_assign(taxaonly3)
 
 #guilds<-read.delim("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/FiguresStats/LAmarshCulture/FUNGuild/taxaonly.taxa.guilds.txt")
 View(guilds)
@@ -400,41 +405,43 @@ guilds2<-guilds%>%
   full_join(otutomerge)
 head(guilds2)
 ind<-which(guilds2$guild=="Plant Pathogen")
-plantpathogen<-colSums(guilds2[ind,18:89])
-plantpathogentaxa<-colSums(guilds2[ind,18:89]>0)
+plantpathogen<-colSums(guilds2[ind,21:64])
+plantpathogentaxa<-colSums(guilds2[ind,21:64]>0)
 
 ind<-funguild_query("*Plant Pathogen*", "guild", db = guilds2)$OTU#trophicMode
 ind2<-which(guilds2$OTU%in%ind)
-plantpathogenbroad<-colSums(guilds2[ind2,18:89])
-plantpathogenbroadtaxa<-colSums(guilds2[ind2,18:89]>0)
+plantpathogenbroad<-colSums(guilds2[ind2,21:64])
+plantpathogenbroadtaxa<-colSums(guilds2[ind2,21:64]>0)
 
 ind<-funguild_query("*Plant Pathogen*", "guild", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
-plantpathogenbroadprobablehp<-colSums(guilds2[ind3,18:89])
-plantpathogenbroadprobablehptaxa<-colSums(guilds2[ind3,18:89]>0)
+plantpathogenbroadprobablehp<-colSums(guilds2[ind3,21:64])
+plantpathogenbroadprobablehptaxa<-colSums(guilds2[ind3,21:64]>0)
 
 ind<-funguild_query("*Symbiotroph*", "trophicMode", db = guilds2)$OTU
 ind2<-which(guilds2$OTU%in%ind)
-symbiotroph<-colSums(guilds2[ind2,18:89])
-symbiotrophtaxa<-colSums(guilds2[ind2,18:89]>0)
+symbiotroph<-colSums(guilds2[ind2,21:64])
+symbiotrophtaxa<-colSums(guilds2[ind2,21:64]>0)
 
 ind<-funguild_query("*Symbiotroph*", "trophicMode", db = guilds2)
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
-symbiotrophprobablehp<-colSums(guilds2[ind3,18:89])
-symbiotrophprobablehptaxa<-colSums(guilds2[ind3,18:89]>0)
+symbiotrophprobablehp<-colSums(guilds2[ind3,21:64])
+symbiotrophprobablehptaxa<-colSums(guilds2[ind3,21:64]>0)
 
-totalabundance<-colSums(guilds2[,18:89])
+totalabundance<-colSums(guilds2[,21:64])
 
 temp<-data.frame(sample_data(datp))
 temp$rownames<-rownames(temp)
 temp<-temp%>%
-  dplyr::select(rownames,PlantIndividualYear)
+  dplyr::select(rownames,CommunitySitePL)
 temp2<-data.frame(temp,plantpathogen,plantpathogenbroad,plantpathogenbroadprobablehp,symbiotroph,symbiotrophprobablehp,totalabundance,plantpathogentaxa,plantpathogenbroadtaxa,plantpathogenbroadprobablehptaxa,symbiotrophtaxa,symbiotrophprobablehptaxa)
 
 dat7<-dat6%>%
   full_join(temp2)
+
+write.csv(dat7,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/GeumMastersheet.csv")
 
 #phragspartina<-dat6%>%
   #filter(HostPlant%in%c('Phragmites australis','Spartina patens'))
