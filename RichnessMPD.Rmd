@@ -2,6 +2,14 @@
 title: "R Notebook"
 output: html_notebook
 ---
+# Libraries
+
+```{r}
+
+library(plotrix)
+library(nlme)
+
+```
 #Richness, PD, MPD
 should change to referencing dat6 (it is the same data I just added the MPD data to the dat4 dataframe)
 
@@ -12,62 +20,59 @@ options("contrasts")
 
 ```
 
-## Calculating richness by plant species
+# Calculating richness by plant community
 
 ```{r}
-dat6junroe<-dat6%>%
-  filter(HostPlant=="J. roemerianus")%>%
+dat6DM<-dat6%>%
+  filter(Community.x=="DM")%>%
   dplyr::select(OTU0:OTU9)
-length(which(colSums(dat6junroe)>0)) # 16 taxa in junroe
+length(which(colSums(dat6DM)>0)) # 18 taxa in DM
 
-dat6phraus<-dat6%>%
-  filter(HostPlant=="P. australis")%>%
+dat6MM<-dat6%>%
+  filter(Community.x=="MM")%>%
   dplyr::select(OTU0:OTU9)
-length(which(colSums(dat6phraus)>0)) # 30 taxa in phrag
+length(which(colSums(dat6MM)>0)) # 18 taxa in MM
 
-dat6spapat<-dat6%>%
-  filter(HostPlant=="S. patens")%>%
+dat6FF<-dat6%>%
+  filter(Community.x=="FF")%>%
   dplyr::select(OTU0:OTU9)
-length(which(colSums(dat6spapat)>0)) # 18 taxa in patens
+length(which(colSums(dat6FF)>0)) # 15 taxa in FF
 
-dat6spaalt<-dat6%>%
-  filter(HostPlant=="S. alterniflora")%>%
+dat6SB<-dat6%>%
+  filter(Community.x=="SB")%>%
   dplyr::select(OTU0:OTU9)
-length(which(colSums(dat6spaalt)>0)) # 28 taxa in patens
-
-dat6saglan<-dat6%>%
-  filter(HostPlant=="S. lancifolia")%>%
-  dplyr::select(OTU0:OTU9)
-length(which(colSums(dat6saglan)>0)) # 9 taxa in patens
+length(which(colSums(dat6SB)>0)) # 13 taxa in SB
 
 #abundance
-rowSums(dat6[,11:70])
+rowSums(dat6[,9:43])
 
 ```
 
 ## Richness
 
 ```{r}
+
 richnessmean<-dat6%>%
-  group_by(HostPlant,Site)%>%
+  group_by(Community.x,Site)%>%
   summarise(mean=mean(SR),se=std.error(SR),count=n())
 
-ggplot(richnessmean,aes(x=Site,y=mean,color=Site,group=HostPlant))+
+rm <- ggplot(richnessmean,aes(x=Site,y=mean,color=Site,group=Community.x))+
   labs(x = "",y="Richness") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
-  geom_line(stat = "identity", position = "identity",size=.5,col="black")+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_line(stat = "identity", position = "identity",linewidth = .5, col="black")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) +
   #scale_color_manual(values = c("gray70","gray50", "gray30"))+
-  facet_wrap(vars(HostPlant),strip.position = "bottom")
+  facet_wrap(vars(Community.x),strip.position = "bottom")
+print(rm)
 
-#This is one I used for ms
-pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/richness.pdf",width=6.6,height=3.5)
-ggplot(richnessmean,aes(x=HostPlant,y=mean,color=HostPlant,group=HostPlant))+
+
+#This is one Emily used for ms
+rm2 <- ggplot(richnessmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="Richness") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  theme(line=element_line(linewidth = .3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) +
   facet_wrap(vars(Site),strip.position = "bottom")
@@ -80,62 +85,57 @@ richnessmean<-dat4%>%
   group_by(Site)%>%
   summarise(mean=mean(SR),se=std.error(SR))
 
-ggplot(richnessmean,aes(x=Site,y=mean,color=Site,group=Site))+
+rm3 <- ggplot(richnessmean,aes(x=Site,y=mean,color=Site,group=Site))+
   labs(x = "",y="Richness") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
-  geom_line(stat = "identity", position = "identity",size=.5,col="black")+
+  theme(line=element_line(linewidth=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_line(stat = "identity", position = "identity",linewidth=.5,col="black")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) 
 
-#Averaging within host plant
+#Averaging within plant community
 richnessmean<-dat4%>%
-  group_by(HostPlant)%>%
+  group_by(Community.x)%>%
   summarise(mean=mean(SR),se=std.error(SR))
 
-ggplot(richnessmean,aes(x=HostPlant,y=mean,color=HostPlant,group=HostPlant))+
+rm4 <- ggplot(richnessmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="Richness") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
-  geom_line(stat = "identity", position = "identity",size=.5,col="black")+
+  theme(line=element_line(linewidth=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_line(stat = "identity", position = "identity",linewidth=.5,col="black")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) 
 
 ```
 
-#Stats
+##Stats
 
-# m1<-gls(SR~HostPlant+Site,data=dat6,na.action=na.omit)
-# anova(m1,type="marginal")
-# 
-# m2<-gls(SR~HostPlant*Site,data=phragspartina,na.action=na.omit)
-# anova(m2,type="marginal")
+gls <- fit linear model using generalized least squares
 
-m1<-lme(SR~HostPlant+Site,random=~1|Year,data=dat6,na.action=na.omit)
+lme <- linear mixed-effects models
+
+``` {r}
+m1<-gls(SR~Community.x+Site,data=dat6,na.action=na.omit)
 anova(m1,type="marginal")
+#statistically different
+
+m1<-lme(SR~Community.x+Site,random=~1|PlantIndividual,data=dat6,na.action=na.omit)
+anova(m1,type="marginal")
+#statistically different
 hist(resid(m1))
-boxplot(resid(m1)~dat6$HostPlantSite)
+boxplot(resid(m1)~dat6$CommunitySitePL)
 
 #with heterogeneous variances, not significant
-#m1a<-lme(SR~HostPlant+Site,random=~1|Year,weights=varIdent(form=~1|Site*HostPlant),data=dat6,na.action=na.omit)
-#anova(m1,m1a)
-#anova(m1,type="marginal")
+m1a<-lme(SR~Community.x+Site,random=~1|PlantIndividual,weights=varIdent(form=~1|Site*Community.x),data=dat6,na.action=na.omit)
+anova(m1,m1a)
+# not statistcially different
 
+```
 
-m2<-lme(SR~HostPlant*Site,random=~1|Year,data=phragspartina,na.action=na.omit)
-anova(m2,type="marginal")
+# Faiths Phylogenetic distance
 
-#with heterogeneous variances, not significant
-#m2a<-lme(SR~HostPlant*Site,random=~1|Year,weights=varIdent(form=~1|Site*HostPlant),data=phragspartina,na.action=na.omit)
-#anova(m2,m2a)
-#anova(m2,type="marginal")
+```{r}
 
-
-
-
-
-
-###### Faiths Phylogenetic distance #####
 pdmean<-dat6%>%
   group_by(HostPlant,Site)%>%
   summarise(mean=mean(PD),se=std.error(PD),count=n())
@@ -196,15 +196,14 @@ anova(m1,type="marginal")
 m1<-gls(PD~HostPlant*Site,data=phragspartina,na.action=na.omit)
 anova(m1,type="marginal")
 
+```
 
+# MPD
 
+an MPD that is > 0 is overdispersion, and MPD < 0 is phylogenetic clustering
+mpd.obs.z is what we want it compares the observed to the randomized data, if > 0 overdispersion, if < 0 clustered
 
-
-
-##### MPD #####
-
-## an MPD that is > 0 is overdispersion, and MPD < 0 is phylogenetic clustering
-## mpd.obs.z is what we want it compares the observed to the randomized data, if > 0 overdispersion, if < 0 clustered
+``` {r}
 
 mpdmean<-dat6%>%
   group_by(Site,HostPlant)%>%
@@ -309,8 +308,11 @@ anova(m2,type="marginal")
 # m2<-lme(mpd.obs.z.weighted~Site,random=~1|HostPlant,data=dat6,na.action=na.omit)
 # anova(m2)
 
+```
 
-##### Plot for mdp and richness together #####
+# Plot for mdp and richness together
+
+```{r}
 
 richfig<-ggplot(richnessmean,aes(x=HostPlant,y=mean,color=HostPlant,group=HostPlant))+
   labs(x = "",y="Richness") +
@@ -334,14 +336,16 @@ pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manus
 plot_grid(richfig, mpdfig, nrow = 2)
 dev.off()
 
+```
 
+## MPD trials
 
+below are the trials that I did for individual (abundance weighted vs not and grouped by species x site, site, and species)
 
-#####MPD trials #####
-#### below are the trials that I did for individual (abundance weighted vs not and grouped by species x site, site, and species)
+MPD by plant individual 
+notes on results of unweighted vs weighted. the overall pattern is very similar, but the weighted results tend to have slightly smaller error bars so that some (junroe) might be significantly positive. However, it probably makes the most sense to use unweighted because (based on the labeling file in google drive) it sounds like they only isolated one "morphotype" per plate (of 5 root pieces) therefore it is unlikely to get an abundance >2 (there were two plates of 5 roots each for each sample).
 
-#MPD by plant individual 
-#notes on results of unweighted vs weighted. the overall pattern is very similar, but the weighted results tend to have slightly smaller error bars so that some (junroe) might be significantly positive. However, it probably makes the most sense to use unweighted because (based on the labeling file in google drive) it sounds like they only isolated one "morphotype" per plate (of 5 root pieces) therefore it is unlikely to get an abundance >2 (there were two plates of 5 roots each for each sample).
+```{r}
 
 phydist <- cophenetic(tree)
 ses.mpd.result.ind <- ses.mpd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=FALSE, runs=999) #takes 5 min with 999
@@ -397,9 +401,12 @@ anova(m1)
 m2<-lme(mpd.obs.z~Site,random=~1|HostPlant,data=dat6,na.action=na.omit)
 anova(m2)
 
+```
 
 #Summing by species and site
-# Phrag TC is sig, Phrag LUMCON nearly sig; alterniflora CERF nearly sig, alternaflora LUMCON sig; patens CERF nearly sig
+Phrag TC is sig, Phrag LUMCON nearly sig; alterniflora CERF nearly sig, alternaflora LUMCON sig; patens CERF nearly sig
+
+```{r}
 phydist <- cophenetic(tree)
 
 dat.comm.sum<-dat6%>%
@@ -446,11 +453,11 @@ dat.comm.sum.site$Site<-NULL
 ses.mpd.result.sum.site <- ses.mpd(dat.comm.sum.site, phydist, null.model="taxa.labels",abundance.weighted=F, runs=999)
 ses.mpd.result.sum.site
 
+```
 
+# Tree plotting
 
-
-
-##### Tree plotting #####
+```{r}
 # par(mfrow=c(2,2))
 # for (i in names(traits)) {
 #   plot(phy, show.tip.label=FALSE, main=i)
@@ -465,3 +472,5 @@ colort<-ifelse(dat.comm.sumt$Spartinaalterniflora_LUMCON >0,2,1)
 tiplabels(pch=22, col=colort, bg=colort, cex=1.5)
 
 plot(tree, show.tip.label=T)
+
+```
