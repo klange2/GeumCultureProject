@@ -1,6 +1,8 @@
 ---
 title: "R Notebook"
 output: html_notebook
+editor_options: 
+  chunk_output_type: console
 ---
 # Libraries
 
@@ -8,6 +10,13 @@ output: html_notebook
 
 library(plotrix)
 library(nlme)
+library(cowplot)
+library(picante)
+library(tidyr)
+library(phytools)
+library(NLP)
+library(Polychrome)
+library(forcats)
 
 ```
 #Richness, PD, MPD
@@ -54,8 +63,11 @@ rowSums(dat6[,9:43])
 
 richnessmean<-dat6%>%
   group_by(Community.x,Site)%>%
-  summarise(mean=mean(SR),se=std.error(SR),count=n())
+  summarise(mean=mean(SR),se=std.error(SR),count=n())%>%
+  ungroup()%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))
 
+#comparing richness in sites by descending moisture 
 rm <- ggplot(richnessmean,aes(x=Site,y=mean,color=Site,group=Community.x))+
   labs(x = "",y="Richness") +
   theme_classic()+
@@ -69,6 +81,9 @@ print(rm)
 
 
 #This is one Emily used for ms
+#richness by decending moisture community and sites
+#hump-shaped
+#I like
 rm2 <- ggplot(richnessmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="Richness") +
   theme_classic()+
@@ -85,6 +100,8 @@ richnessmean<-dat4%>%
   group_by(Site)%>%
   summarise(mean=mean(SR),se=std.error(SR))
 
+#average richness in each site, increasing in elevation
+#Soddie is more rich than saddle, which is expected because saddle is a higher elevation site
 rm3 <- ggplot(richnessmean,aes(x=Site,y=mean,color=Site,group=Site))+
   labs(x = "",y="Richness") +
   theme_classic()+
@@ -96,8 +113,12 @@ rm3 <- ggplot(richnessmean,aes(x=Site,y=mean,color=Site,group=Site))+
 #Averaging within plant community
 richnessmean<-dat4%>%
   group_by(Community.x)%>%
-  summarise(mean=mean(SR),se=std.error(SR))
+  summarise(mean=mean(SR),se=std.error(SR))%>%
+  ungroup()%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))
 
+#average richness with descending moisture
+#hump-shaped
 rm4 <- ggplot(richnessmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="Richness") +
   theme_classic()+
@@ -137,26 +158,30 @@ anova(m1,m1a)
 ```{r}
 
 pdmean<-dat6%>%
-  group_by(HostPlant,Site)%>%
-  summarise(mean=mean(PD),se=std.error(PD),count=n())
+  group_by(Community.x,Site)%>%
+  summarise(mean=mean(PD),se=std.error(PD),count=n())%>%
+  ungroup()%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))
 
-#pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Survey/Manuscripts/Gradientms/Figs/natrichhetvar.pdf",width=2.2,height=2.2)
-ggplot(pdmean,aes(x=Site,y=mean,color=HostPlant,group=HostPlant))+
+#comparing phylogenetic distance in sites by descending moisture
+pd <- ggplot(pdmean,aes(x=Site,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="PD") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
-  geom_line(stat = "identity", position = "identity",size=.5,col="black")+
+  theme(line=element_line(linewidth=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_line(stat = "identity", position = "identity",linewidth=.5,col="black")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) +
   #scale_color_manual(values = c("gray70","gray50", "gray30"))+
-  facet_wrap(vars(HostPlant),strip.position = "bottom")
+  facet_wrap(vars(Community.x),strip.position = "bottom")
 #dev.off()
 
-ggplot(pdmean,aes(x=HostPlant,y=mean,color=Site,group=Site))+
+#richness by descending moisture community and sites
+#hump-shaped
+pd2 <- ggplot(pdmean,aes(x=Community.x,y=mean,color=Site,group=Site))+
   labs(x = "",y="PD") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
-  geom_line(stat = "identity", position = "identity",size=.5,col="black")+
+  theme(line=element_line(linewidth=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_line(stat = "identity", position = "identity",linewidth=.5,col="black")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) +
   #scale_color_manual(values = c("gray70","gray50", "gray30"))+
@@ -168,35 +193,38 @@ pdmean<-dat4%>%
   group_by(Site)%>%
   summarise(mean=mean(PD),se=std.error(PD))
 
-ggplot(pdmean,aes(x=Site,y=mean,color=Site,group=Site))+
+#average phylogenetic distance in each site, increasing in elevation
+#Saddle is more phylogenetically distant than soddie even with less richness
+pd3 <- ggplot(pdmean,aes(x=Site,y=mean,color=Site,group=Site))+
   labs(x = "",y="PD") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
-  geom_line(stat = "identity", position = "identity",size=.5,col="black")+
+  theme(line=element_line(linewidth=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_line(stat = "identity", position = "identity",linewidth=.5,col="black")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) 
 
-#Averaging within host plant
+#Averaging within community
 pdmean<-dat4%>%
-  group_by(HostPlant)%>%
-  summarise(mean=mean(PD),se=std.error(PD))
+  group_by(Community.x)%>%
+  summarise(mean=mean(PD),se=std.error(PD))%>%
+  ungroup()%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))
 
-ggplot(pdmean,aes(x=HostPlant,y=mean,color=HostPlant,group=HostPlant))+
+#average phylogenetic distance with descending moisture
+#hump-shaped
+pd4 <- ggplot(pdmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="PD") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
-  geom_line(stat = "identity", position = "identity",size=.5,col="black")+
+  theme(line=element_line(linewidth=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_line(stat = "identity", position = "identity",linewidth=.5,col="black")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) 
 ```
 
 ## Stats
 ``` {r}
-m1<-gls(PD~HostPlant+Site,data=dat6,na.action=na.omit)
+m1<-gls(PD~Community.x+Site,data=dat6,na.action=na.omit)
 #m1<-gls(mpd.obs.z.weighted~Site,data=dat6,na.action=na.omit)
-anova(m1,type="marginal")
-
-m1<-gls(PD~HostPlant*Site,data=phragspartina,na.action=na.omit)
 anova(m1,type="marginal")
 
 ```
@@ -209,62 +237,63 @@ mpd.obs.z is what we want it compares the observed to the randomized data, if > 
 ``` {r}
 
 mpdmean<-dat6%>%
-  group_by(Site,HostPlant)%>%
+  group_by(Site,Community.x)%>%
   filter(is.na(mpd.obs.z.weighted)==F)%>%
   summarise(mean=mean(mpd.obs.z.weighted,na.rm=T),se=std.error(mpd.obs.z.weighted),n=n())%>%
   ungroup()%>%
-  mutate(HostPlant=recode(HostPlant,"Phragmites australis"="PhrAus","Sagittaria lancifolia"="SagLan","Spartina alterniflora"="SpaAlt","Spartina patens"="SpaPat","Juncus roemerianus"="JunRoe"))
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))
 mpdmean
 
-#This is one I used for ms
-pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/mpd.pdf",width=6.6,height=3.5)
-ggplot(mpdmean,aes(x=HostPlant,y=mean,color=HostPlant,group=HostPlant))+
+#This is one emily used for ms
+#mean pairwise distance by descending moisture community and sites
+mpd <- ggplot(mpdmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="MPD") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_hline(yintercept=0,linetype="dashed")+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) +
   facet_wrap(vars(Site),strip.position = "bottom")
 dev.off()
 
-ggplot(mpdmean,aes(x=Site,y=mean,color=HostPlant,group=HostPlant))+
+#comparing mean pairwise distance in sites by descending moisture
+mpd2 <- ggplot(mpdmean,aes(x=Site,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="MPD") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
-  geom_line(stat = "identity", position = "identity",size=.5,col="black")+
+  theme(line=element_line(linewidth=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_line(stat = "identity", position = "identity",linewidth=.5,col="black")+
   geom_hline(yintercept=0,linetype="dashed")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) +
-  facet_wrap(~HostPlant)#,strip.position = "bottom")
+  facet_wrap(~Community.x)#,strip.position = "bottom")
 
-ggplot(mpdmean,aes(x=HostPlant,y=mean,color=HostPlant,group=Site))+
+#adding line element
+mpd3 <- ggplot(mpdmean,aes(x=Community.x,y=mean,color=Community.x,group=Site))+
   labs(x = "",y="MPD") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(.5,"cm"),strip.placement = "outside")+
+  theme(line=element_line(linewidth=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",panel.spacing=unit(.5,"cm"),strip.placement = "outside")+
   geom_hline(yintercept=0,linetype="dashed")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) +
   facet_wrap(~Site)#,strip.position = "bottom")
 
-#with year
+#with plant individual
 mpdmean<-dat6%>%
-  group_by(Site,HostPlant,Year)%>%
+  group_by(Site,Community.x,PlantIndividual)%>%
   filter(is.na(mpd.obs.z.weighted)==F)%>%
   summarise(mean=mean(mpd.obs.z.weighted,na.rm=T),se=std.error(mpd.obs.z.weighted),n=n())%>%
   ungroup()%>%
-  mutate(HostPlant=recode(HostPlant,"Phragmites australis"="PhrAus","Sagittaria lancifolia"="SagLan","Spartina alterniflora"="SpaAlt","Spartina patens"="SpaPat","Juncus roemerianus"="JunRoe"))
-mpdmean
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))
 
-ggplot(mpdmean,aes(x=Site,y=mean,color=HostPlant,group=HostPlant))+
+mpd4 <- ggplot(mpdmean,aes(x=Site,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="MPD") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  theme(line=element_line(linewidth=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
 #  geom_line(stat = "identity", position = "identity",size=.5,col="black")+
   geom_hline(yintercept=0,linetype="dashed")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) +
-  facet_wrap(~HostPlant)#,strip.position = "bottom")
+  facet_wrap(~Community.x)#,strip.position = "bottom")
 
 options(contrasts=c("contr.helmert","contr.poly"))
 options(contrasts=c("contr.treatment","contr.poly"))
@@ -281,7 +310,7 @@ options(contrasts=c("contr.treatment","contr.poly"))
 # m2<-gls(mpd.obs.z.weighted~HostPlant*Site,data=phragspartina,na.action=na.omit)
 # anova(m2,type="marginal")
 
-m1<-lme(mpd.obs.z.weighted~HostPlant+Site,random=~1|Year,data=dat6,na.action=na.omit)
+m1<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,data=dat6,na.action=na.omit)
 # m2<-lme(mpd.obs.z.weighted~HostPlant+Site,random=~1|Year,weights=varIdent(form=~1|Site),data=dat6,na.action=na.omit)
 # m3<-lme(mpd.obs.z.weighted~HostPlant+Site,random=~1|Year,weights=varIdent(form=~1|HostPlant),data=dat6,na.action=na.omit)
 # m4<-lme(mpd.obs.z.weighted~HostPlant+Site,random=~1|Year,weights=varIdent(form=~1|HostPlantSite),data=dat6,na.action=na.omit)
@@ -323,25 +352,38 @@ anova(m2,type="marginal")
 
 ```{r}
 
-richfig<-ggplot(richnessmean,aes(x=HostPlant,y=mean,color=HostPlant,group=HostPlant))+
+richnessmean<-dat6%>%
+  group_by(Community.x,Site)%>%
+  summarise(mean=mean(SR),se=std.error(SR),count=n())%>%
+  ungroup()%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))
+
+richfig<-ggplot(richnessmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="Richness") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) +
   facet_wrap(vars(Site),strip.position = "bottom")
 
-mpdfig<-ggplot(mpdmean,aes(x=HostPlant,y=mean,color=HostPlant,group=HostPlant))+
+mpdmean<-dat6%>%
+  group_by(Site,Community.x)%>%
+  filter(is.na(mpd.obs.z.weighted)==F)%>%
+  summarise(mean=mean(mpd.obs.z.weighted,na.rm=T),se=std.error(mpd.obs.z.weighted),n=n())%>%
+  ungroup()%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))
+
+mpdfig<-ggplot(mpdmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="MPD") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_hline(yintercept=0,linetype="dashed")+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) +
   facet_wrap(vars(Site),strip.position = "bottom")
 
 
-pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/richnessmpd.pdf")
+#pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/richnessmpd.pdf")
 plot_grid(richfig, mpdfig, nrow = 2)
 dev.off()
 
@@ -356,47 +398,45 @@ notes on results of unweighted vs weighted. the overall pattern is very similar,
 
 ```{r}
 
-phydist <- cophenetic(tree)
+phydist <- cophenetic(trimmednwk)
 ses.mpd.result.ind <- ses.mpd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=FALSE, runs=999) #takes 5 min with 999
-ses.mpd.result.ind$PlantIndividualYear<-rownames(ses.mpd.result.ind)
+ses.mpd.result.ind$CommunitySitePL<-rownames(ses.mpd.result.ind)
 ses.mpd.result.ind
 
 mpdmean<-ses.mpd.result.ind%>%
   full_join(dat4)%>%
-  group_by(Site,HostPlant)%>%
+  group_by(Site,Community.x)%>%
   filter(is.na(mpd.obs.z)==F)%>%
   summarise(mean=mean(mpd.obs.z,na.rm=T),se=std.error(mpd.obs.z),n=n())%>%
-  ungroup()%>%
-  mutate(HostPlant=recode(HostPlant,"Phragmites australis"="PhrAus","Sagittaria lancifolia"="SagLan","Spartina alterniflora"="SpaAlt","Spartina patens"="SpaPat","Juncus roemerianus"="JunRoe"))
+  ungroup()
 mpdmean
 
 ses.mpd.result.ind.abun <- ses.mpd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=T, runs=999) #takes 5 min with 999
-ses.mpd.result.ind.abun$PlantIndividualYear<-rownames(ses.mpd.result.ind.abun)
+ses.mpd.result.ind.abun$CommunitySitePL<-rownames(ses.mpd.result.ind.abun)
 ses.mpd.result.ind.abun
 
 mpdmean<-ses.mpd.result.ind.abun%>%
   full_join(dat4)%>%
-  group_by(Site,HostPlant)%>%
+  group_by(Site,Community.x)%>%
   filter(is.na(mpd.obs.z)==F)%>%
   summarise(mean=mean(mpd.obs.z,na.rm=T),se=std.error(mpd.obs.z),n=n())%>%
-  ungroup()%>%
-  mutate(HostPlant=recode(HostPlant,"Phragmites australis"="PhrAus","Sagittaria lancifolia"="SagLan","Spartina alterniflora"="SpaAlt","Spartina patens"="SpaPat","Juncus roemerianus"="JunRoe"))
+  ungroup()
 mpdmean
 
-ggplot(mpdmean,aes(x=Site,y=mean,color=HostPlant,group=HostPlant))+
+trial <- ggplot(mpdmean,aes(x=Site,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="MPD") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
-  geom_line(stat = "identity", position = "identity",size=.5,col="black")+
+  theme(line=element_line(linewidth=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_line(stat = "identity", position = "identity",linewidth=.5,col="black")+
   geom_hline(yintercept=0,linetype="dashed")+
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) +
-  facet_wrap(~HostPlant)#,strip.position = "bottom")
+  facet_wrap(~Community.x)#,strip.position = "bottom")
 
-ggplot(mpdmean,aes(x=HostPlant,y=mean,color=HostPlant,group=Site))+
+trial2 <- ggplot(mpdmean,aes(x=Community.x,y=mean,color=Community.x,group=Site))+
   labs(x = "",y="MPD") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",panel.spacing=unit(.5,"cm"),strip.placement = "outside")+
+  theme(line=element_line(linewidth=.3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",panel.spacing=unit(.5,"cm"),strip.placement = "outside")+
   #geom_line(stat = "identity", position = "identity",size=.5,col="black")+
   geom_hline(yintercept=0,linetype="dashed")+
   geom_point(size=1.8)+
@@ -418,40 +458,40 @@ anova(m2)
 
 ```
 
-#Summing by species and site
+#Summing by community and site
 Phrag TC is sig, Phrag LUMCON nearly sig; alterniflora CERF nearly sig, alternaflora LUMCON sig; patens CERF nearly sig
 
 ```{r}
-phydist <- cophenetic(tree)
+phydist <- cophenetic(trimmednwk)
 
 dat.comm.sum<-dat6%>%
-  group_by(HostPlant,Site)%>%
+  group_by(Community.x,Site)%>%
   summarise(across(OTU0:OTU9,sum))%>%
-  unite(HostPlantSite,HostPlant,Site)
-dat.comm.sum$HostPlantSite<-apply(as.matrix(dat.comm.sum$HostPlantSite),1,function(x){gsub(" ", "", x)})
+  unite(CommunitySite,Community.x,Site)
+dat.comm.sum$CommuitySite<-apply(as.matrix(dat.comm.sum$CommunitySite),1,function(x){gsub(" ", "", x)})
 dat.comm.sum<-data.frame(dat.comm.sum)
-row.names(dat.comm.sum)<-dat.comm.sum$HostPlantSite
-dat.comm.sum$HostPlantSite<-NULL
+row.names(dat.comm.sum)<-dat.comm.sum$CommunitySite
+dat.comm.sum$CommunitySite<-NULL
 
 #ses.mntd.result <- ses.mntd(dat.comm.sum, phydist, null.model="taxa.labels", abundance.weighted=FALSE, runs=999)
 #ses.mntd.result
 
-ses.mpd.result.sum <- ses.mpd(dat.comm.sum, phydist, null.model="taxa.labels", abundance.weighted=F, runs=999)
+ses.mpd.result.sum <- ses.mpd(dat.comm.sum[,1:35], phydist, null.model="taxa.labels", abundance.weighted=F, runs=999)
 ses.mpd.result.sum
 
 
-#Summing by species
+#Summing by community
 #spartina alterniflora nearly sig
-dat.comm.sum.sp<-dat6%>%
-  group_by(HostPlant)%>%
+dat.comm.sum.DM<-dat6%>%
+  group_by(Community.x)%>%
   summarise(across(OTU0:OTU9,sum))
-dat.comm.sum.sp$HostPlant<-apply(as.matrix(dat.comm.sum.sp$HostPlant),1,function(x){gsub(" ", "", x)})
-dat.comm.sum.sp<-data.frame(dat.comm.sum.sp)
-row.names(dat.comm.sum.sp)<-dat.comm.sum.sp$HostPlant
-dat.comm.sum.sp$HostPlant<-NULL
+dat.comm.sum.DM$Community.x<-apply(as.matrix(dat.comm.sum.DM$Community.x),1,function(x){gsub(" ", "", x)})
+dat.comm.sum.DM<-data.frame(dat.comm.sum.DM)
+row.names(dat.comm.sum.DM)<-dat.comm.sum.DM$Community.x
+dat.comm.sum.DM$Community.x<-NULL
 
-ses.mpd.result.sum.sp <- ses.mpd(dat.comm.sum.sp, phydist, null.model="taxa.labels",abundance.weighted=FALSE, runs=999)
-ses.mpd.result.sum.sp
+ses.mpd.result.sum.DM <- ses.mpd(dat.comm.sum.DM, phydist, null.model="taxa.labels",abundance.weighted=FALSE, runs=999)
+ses.mpd.result.sum.DM
 
 
 
@@ -479,13 +519,110 @@ ses.mpd.result.sum.site
 #   tiplabels(pch=22, col=traits[,i]+1, bg=traits[,i]+1, cex=1.5)
 # }
 
-dat.comm.sum.spt<-as.data.frame(t(dat.comm.sum.sp))
+dat.comm.sum.DMt<-as.data.frame(t(dat.comm.sum.DM))
 dat.comm.sumt<-as.data.frame(t(dat.comm.sum))
 
-plot(tree, show.tip.label=FALSE)
-colort<-ifelse(dat.comm.sumt$Spartinaalterniflora_LUMCON >0,2,1)
+plot(trimmednwk, show.tip.label=FALSE)
+colort<-ifelse(dat.comm.sumt$DM >0,2,1)
 tiplabels(pch=22, col=colort, bg=colort, cex=1.5)
 
-plot(tree, show.tip.label=T)
+plot(trimmednwk, show.tip.label=T)
+
+```
+
+# Tree heatmap
+
+```{r}
+
+labels <- guilds%>%
+  dplyr::select(OTU,Genus,Species,trophicMode)
+labels$Genus <- stringr::str_replace(labels$Genus, 'g__', '')
+labels$Species <- stringr::str_replace(labels$Species, 's__', '')
+labels$Genus[is.na(labels$Genus)] <- "Unknown"
+labels$Species[is.na(labels$Species)] <- "sp."
+labels <- labels%>%
+  unite(GenusSpecies, Genus, Species)
+labels$OTUGS <- paste(labels$OTU, labels$GenusSpecies, sep="_")
+
+matrix <- dat.comm.sumt[1:35,]
+matrix2 <- apply(matrix,2,trimws)
+heatmat <- matrix2
+
+for (i in 1:nrow(matrix2)){
+  for (j in 1:ncol(matrix2)){
+  if (matrix2[i,j]==0){
+    heatmat[i,j]="a"
+    } else if(matrix2[i,j]==1 || matrix2[i,j]==2){
+    heatmat[i,j]="b"
+    } else if(matrix2[i,j]==3 || matrix2[i,j]==4) {
+    heatmat[i,j]="c"
+    } else if(matrix2[i,j]==5 || matrix2[i,j]==6) {
+    heatmat[i,j]="d"
+    } else if(matrix2[i,j]==7 || matrix2[i,j]==8) {
+    heatmat[i,j]="e"
+    } else if(matrix2[i,j]==9 || matrix2[i,j]==10) {
+    heatmat[i,j]="f"
+    } else if(matrix2[i,j]==11 || matrix2[i,j]==12) {
+    heatmat[i,j]="g"
+    } else if(matrix2[i,j]==13 || matrix2[i,j]==14) {
+    heatmat[i,j]="h"
+    } else if(matrix2[i,j]==15 || matrix2[i,j]==16) {
+    heatmat[i,j]="i"
+    } 
+  }
+}
+
+matrix3 <- matrix2 %>%
+  data.frame()%>%
+  dplyr::select(SB_P,SB_Q,MM_P,MM_Q,DM_P,DM_Q,FF_P,FF_Q)
+rownames(matrix3) <- labels[[4]][match(rownames(matrix3), labels[[1]])]
+
+write.csv(matrix3,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Treeheatmat.csv")
+tree.heat2 <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Treeheatmat.csv", row.names=1, stringsAsFactors = TRUE)
+
+trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archivePM2RLCID_/PM2RLCID.nwk")
+trimmednwk$tip.label <- geumroot[[16]][match(trimmednwk$tip.label, geumroot[[1]])]
+trimmednwk$tip.label <- labels[[4]][match(trimmednwk$tip.label, labels[[1]])]
+
+p <- ggtree(trimmednwk) + 
+    geom_tiplab(size=2, align=TRUE, linesize=.5)
+gheatmap(p, tree.heat2, offset=1, width=0.5,font.size = 2, 
+  colnames_angle=-45,hjust=0) +       
+  scale_x_ggtree() + 
+  scale_y_continuous(expand=c(0, 0.3)) + 
+  scale_fill_gradient(low = "white", high = "steelblue", name = "Abundance")
+  #scale_fill_manual(values=c("#fff7fb", "#ece2f0", "#d0d1e6","#a6bddb","#67a9cf","#3690c0","#02818a","#016c59","#014636"), name="Abundance")
+
+```
+
+
+# Tree with absent/present
+
+``` {r}
+
+matrix <- dat.comm.sumt[1:35,]
+matrix2 <- apply(matrix,2,trimws)
+matrix3 <- ifelse(matrix2 == 0, "Absent","Present")
+matrix4 <- matrix3 %>%
+  data.frame()%>%
+  dplyr::select(SB_P,SB_Q,MM_P,MM_Q,DM_P,DM_Q,FF_P,FF_Q)
+rownames(matrix4) <- labels[[4]][match(rownames(matrix4), labels[[1]])]
+rownames(labels) <- labels[[4]]
+mat <- merge(matrix4,labels,by=0)
+mat <- mat%>%
+  dplyr::select(Row.names,SB_P,SB_Q,MM_P,MM_Q,DM_P,DM_Q,FF_P,FF_Q)
+
+write.csv(mat,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Treemat.csv")
+tree.data <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Treemat.csv", row.names=2, stringsAsFactors = TRUE)
+tree.data$X <- NULL
+
+trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archivePM2RLCID_/PM2RLCID.nwk")
+trimmednwk$tip.label <- geumroot[[16]][match(trimmednwk$tip.label, geumroot[[1]])]
+trimmednwk$tip.label <- labels[[4]][match(trimmednwk$tip.label, labels[[1]])]
+
+tree <- plotTree.datamatrix(trimmednwk,tree.data,fsize=0.5,palettes=c("YlOrRd","PuBuGn"),yexp=1.12,xexp=2)
+leg <- legend(x="topright",names(tree$colors$DM_P),cex=0.7,pch=22,pt.bg=tree$colors$DM_P,pt.cex=1.5,bty="n",title="Soddie")
+#leg2 <- legend(x="bottomright",names(tree$colors$DM_Q),cex=0.7,pch=22,pt.bg=tree$colors$DM_Q,pt.cex=1.5,bty="n",title="Saddle")
+leg2 <- legend(x=(leg$rect$left), y=(leg$rect$top-leg$rect$h),names(tree$colors$DM_Q),cex=0.7,pch=22,pt.bg=tree$colors$DM_Q,pt.cex=1.5,bty="n",title="Saddle")
 
 ```
