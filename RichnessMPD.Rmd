@@ -17,6 +17,7 @@ library(phytools)
 library(NLP)
 library(Polychrome)
 library(forcats)
+library(ggtree)
 
 ```
 #Richness, PD, MPD
@@ -53,7 +54,7 @@ dat6SB<-dat6%>%
 length(which(colSums(dat6SB)>0)) # 13 taxa in SB
 
 #abundance
-rowSums(dat6[,9:43])
+rowSums(dat6[,9:42])
 
 ```
 
@@ -176,7 +177,6 @@ pd <- ggplot(pdmean,aes(x=Site,y=mean,color=Community.x,group=Community.x))+
 #dev.off()
 
 #richness by descending moisture community and sites
-#hump-shaped
 pd2 <- ggplot(pdmean,aes(x=Community.x,y=mean,color=Site,group=Site))+
   labs(x = "",y="PD") +
   theme_classic()+
@@ -194,7 +194,6 @@ pdmean<-dat4%>%
   summarise(mean=mean(PD),se=std.error(PD))
 
 #average phylogenetic distance in each site, increasing in elevation
-#Saddle is more phylogenetically distant than soddie even with less richness
 pd3 <- ggplot(pdmean,aes(x=Site,y=mean,color=Site,group=Site))+
   labs(x = "",y="PD") +
   theme_classic()+
@@ -398,7 +397,7 @@ notes on results of unweighted vs weighted. the overall pattern is very similar,
 
 ```{r}
 
-phydist <- cophenetic(trimmednwk)
+phydist <- cophenetic(cleanedtree_v2)
 ses.mpd.result.ind <- ses.mpd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=FALSE, runs=999) #takes 5 min with 999
 ses.mpd.result.ind$CommunitySitePL<-rownames(ses.mpd.result.ind)
 ses.mpd.result.ind
@@ -462,7 +461,7 @@ anova(m2)
 Phrag TC is sig, Phrag LUMCON nearly sig; alterniflora CERF nearly sig, alternaflora LUMCON sig; patens CERF nearly sig
 
 ```{r}
-phydist <- cophenetic(trimmednwk)
+phydist <- cophenetic(cleanedtree_v2)
 
 dat.comm.sum<-dat6%>%
   group_by(Community.x,Site)%>%
@@ -476,7 +475,7 @@ dat.comm.sum$CommunitySite<-NULL
 #ses.mntd.result <- ses.mntd(dat.comm.sum, phydist, null.model="taxa.labels", abundance.weighted=FALSE, runs=999)
 #ses.mntd.result
 
-ses.mpd.result.sum <- ses.mpd(dat.comm.sum[,1:35], phydist, null.model="taxa.labels", abundance.weighted=F, runs=999)
+ses.mpd.result.sum <- ses.mpd(dat.comm.sum[,1:34], phydist, null.model="taxa.labels", abundance.weighted=F, runs=999)
 ses.mpd.result.sum
 
 
@@ -522,15 +521,17 @@ ses.mpd.result.sum.site
 dat.comm.sum.DMt<-as.data.frame(t(dat.comm.sum.DM))
 dat.comm.sumt<-as.data.frame(t(dat.comm.sum))
 
-plot(trimmednwk, show.tip.label=FALSE)
+plot(cleanedtree_v2, show.tip.label=FALSE)
 colort<-ifelse(dat.comm.sumt$DM >0,2,1)
 tiplabels(pch=22, col=colort, bg=colort, cex=1.5)
 
-plot(trimmednwk, show.tip.label=T)
+plot(cleanedtree_v2, show.tip.label=T)
 
 ```
 
 # Tree heatmap
+
+this is made with absolute abundances, but would relative abundances be better to use?
 
 ```{r}
 
@@ -538,13 +539,12 @@ labels <- guilds%>%
   dplyr::select(OTU,Genus,Species,trophicMode)
 labels$Genus <- stringr::str_replace(labels$Genus, 'g__', '')
 labels$Species <- stringr::str_replace(labels$Species, 's__', '')
-labels$Genus[is.na(labels$Genus)] <- "Unknown"
-labels$Species[is.na(labels$Species)] <- "sp."
+labels <- labels[-c(3),]
 labels <- labels%>%
   unite(GenusSpecies, Genus, Species)
 labels$OTUGS <- paste(labels$OTU, labels$GenusSpecies, sep="_")
 
-matrix <- dat.comm.sumt[1:35,]
+matrix <- dat.comm.sumt[1:34,]
 matrix2 <- apply(matrix,2,trimws)
 heatmat <- matrix2
 
@@ -580,16 +580,16 @@ rownames(matrix3) <- labels[[4]][match(rownames(matrix3), labels[[1]])]
 write.csv(matrix3,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Treeheatmat.csv")
 tree.heat2 <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Treeheatmat.csv", row.names=1, stringsAsFactors = TRUE)
 
-trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archivePM2RLCID_/PM2RLCID.nwk")
-trimmednwk$tip.label <- geumroot[[16]][match(trimmednwk$tip.label, geumroot[[1]])]
-trimmednwk$tip.label <- labels[[4]][match(trimmednwk$tip.label, labels[[1]])]
+cleanedtree_v2 <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk")
+cleanedtree_v2$tip.label <- geumroot[[16]][match(cleanedtree_v2$tip.label, geumroot[[1]])]
+cleanedtree_v2$tip.label <- labels[[4]][match(cleanedtree_v2$tip.label, labels[[1]])]
 
-p <- ggtree(trimmednwk) + 
+p <- ggtree(cleanedtree_v2) + 
     geom_tiplab(size=2, align=TRUE, linesize=.5)
 gheatmap(p, tree.heat2, offset=1, width=0.5,font.size = 2, 
   colnames_angle=-45,hjust=0) +       
   scale_x_ggtree() + 
-  scale_y_continuous(expand=c(0, 0.3)) + 
+  scale_y_continuous(expand=c(0, 2)) + 
   scale_fill_gradient(low = "white", high = "steelblue", name = "Abundance")
   #scale_fill_manual(values=c("#fff7fb", "#ece2f0", "#d0d1e6","#a6bddb","#67a9cf","#3690c0","#02818a","#016c59","#014636"), name="Abundance")
 
@@ -600,7 +600,7 @@ gheatmap(p, tree.heat2, offset=1, width=0.5,font.size = 2,
 
 ``` {r}
 
-matrix <- dat.comm.sumt[1:35,]
+matrix <- dat.comm.sumt[1:34,]
 matrix2 <- apply(matrix,2,trimws)
 matrix3 <- ifelse(matrix2 == 0, "Absent","Present")
 matrix4 <- matrix3 %>%
@@ -616,11 +616,12 @@ write.csv(mat,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Treemat.cs
 tree.data <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Treemat.csv", row.names=2, stringsAsFactors = TRUE)
 tree.data$X <- NULL
 
-trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archivePM2RLCID_/PM2RLCID.nwk")
-trimmednwk$tip.label <- geumroot[[16]][match(trimmednwk$tip.label, geumroot[[1]])]
-trimmednwk$tip.label <- labels[[4]][match(trimmednwk$tip.label, labels[[1]])]
+cleanedtree_v2 <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk")
+cleanedtree_v2$tip.label <- geumroot[[16]][match(cleanedtree_v2$tip.label, geumroot[[1]])]
+cleanedtree_v2$tip.label <- labels[[4]][match(cleanedtree_v2$tip.label, labels[[1]])]
 
-tree <- plotTree.datamatrix(trimmednwk,tree.data,fsize=0.5,palettes=c("YlOrRd","PuBuGn"),yexp=1.12,xexp=2)
+
+tree <- plotTree.datamatrix(cleanedtree_v2,tree.data,fsize=0.5,palettes=c("YlOrRd","PuBuGn"),yexp=1.12,xexp=2)
 leg <- legend(x="topright",names(tree$colors$DM_P),cex=0.7,pch=22,pt.bg=tree$colors$DM_P,pt.cex=1.5,bty="n",title="Soddie")
 #leg2 <- legend(x="bottomright",names(tree$colors$DM_Q),cex=0.7,pch=22,pt.bg=tree$colors$DM_Q,pt.cex=1.5,bty="n",title="Saddle")
 leg2 <- legend(x=(leg$rect$left), y=(leg$rect$top-leg$rect$h),names(tree$colors$DM_Q),cex=0.7,pch=22,pt.bg=tree$colors$DM_Q,pt.cex=1.5,bty="n",title="Saddle")

@@ -1,0 +1,591 @@
+#Libraries
+
+```{r}
+
+library(cba)
+library(remotes)
+#remotes::install_github("jfq3/QsRutils")
+library(QsRutils)
+library(patchwork)
+
+```
+
+#Ordination 
+
+calculating MDP (mean pairwise distance) matrix for use in ordination
+
+Bray-Curtis dissimilarity: The difference in richness and abundance across environments (samples). Weight on abundance. Measures the differences from 0 (equal communities) to 1 (different communities)
+Jaccard distance: Based on the presence/absence of species (diversity). It goes from 0 (same species in the community) to 1 (no species in common)
+UniFrac: Measures the phylogenetic distance; how alike the trees in each community are. There are two types, without weights (diversity) and with weights (diversity and abundance)
+
+```{r}
+
+
+datp@sam_data[["Community.x"]] <-  fct_relevel(datp@sam_data[["Community.x"]],"SB", "MM", "DM", "FF")
+
+MPDdist<-comdist(data.frame(t(otu_table(datp))), cophenetic(phy_tree(datp)), abundance.weighted=F)
+MPDdistweighted<-comdist(data.frame(t(otu_table(datp))), cophenetic(phy_tree(datp)), abundance.weighted=T)
+
+cleanedtree_v2 <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk")
+cleanedtree_v2$tip.label <- geumroot[[16]][match(cleanedtree_v2$tip.label, geumroot[[1]])]
+
+#unifracp<-unifrac(otus,tree) #doesnt work with subsetting b/c sample names are not the same
+unifracp<-unifrac(t(otu_table(datp)),cleanedtree_v2)
+
+```
+
+# all
+
+```{r}
+datp
+MPDdist #(unweighted)
+MPDdistweighted
+
+#take out singletons. 
+datp2<-datp%>%
+  filter_taxa(function(x) sum(x>0) >1, prune=T)
+datp3<-prune_samples(sample_sums(datp2)>=1, datp2)
+
+```
+
+#Stats
+
+```{r}
+#bray curtis
+mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
+anova(mynmdsALLb,by="margin",permutations = how(nperm=9999))
+
+#Getting variance explained
+m1<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Condition(PlantIndividual+Site)))
+summary(m1)
+m1<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Site+Condition(PlantIndividual+Community.x)))
+summary(m1)
+
+```
+
+
+#use one of these for ms
+
+```{r}
+
+ord <- plot_ordination(datp3, mynmdsALLb, type="samples", color="Site",shape="Community.x",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  scale_shape_manual(values=c(16,3,15,17,5))+ 
+  geom_point(size = 2)+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(x=CAP1,y=CAP2,fill=Site),level=.95,inherit.aes = F)
+
+plot1<-plot_ordination(datp3, mynmdsALLb, type="samples", color="Community.x",shape="Site",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  scale_shape_manual(values=c(5,3,16,15,17))+ 
+  geom_point(size = 2)+
+  #stat_ellipse(geom = "polygon", type="t", alpha=0, aes(x=CAP1,y=CAP2,color=Site),level=.95,inherit.aes = F)+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(x=CAP1,y=CAP2,fill=Community.x),level=.95,inherit.aes = F)
+
+#Plotting convex hulls rather than ellipses, USE THIS FOR MANUSCRIPT
+site_scores1 <- data.frame(cbind(sample_data(datp3),vegan::scores(mynmdsALLb)$sites,labels=rownames(vegan::scores(mynmdsALLb)$sites)))
+
+hull1 <- site_scores1 %>%
+  group_by(Community.x) %>%
+  slice(chull(CAP1,CAP2))
+
+plot1<-ggplot(site_scores1)+
+  theme_classic()+#  theme(legend.position = "none")
+  xlab("CAP1 [15.1%]") +  # 
+  ylab("CAP2 [3.1%]") +  # 
+  scale_shape_manual(values=c(5,3,16))+ 
+  geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
+  geom_polygon(data=hull1,aes(x=CAP1,y=CAP2, fill=Community.x,colour = Community.x),alpha=.2)
+
+# p1=plot_ordination(datp3, mynmdsALLb, type="samples",shape="HostPlant",color="HostPlant",axes=c(1,2))
+# 
+# ggplot(p1$data, aes(x=CAP1,y=CAP2,color="HostPlant",shape="HostPlant")) +
+#   stat_ellipse(data=test,geom = "polygon", type="t", alpha=0.2, aes(fill=Site),level=.95)+
+#   geom_point(data=test)
+# 
+# test<-plot_ordination(datp3, mynmdsALLb, type="samples",color=NULL,shape=NULL,axes=c(1,2),justDF = T)
+
+```  
+
+
+#Stats
+
+```{r}
+
+#MPD
+mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
+#mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~HostPlant+Site))
+anova(mynmdsALLm,by="margin",permutations = how(nperm=9999))
+#anova(mynmdsALLm,by="margin",permutations = how(blocks=sample_data(datp)$Year,nperm=9999)) #adding permutations within year does not change the anova results
+
+#percent explained
+m1 <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x+Condition(PlantIndividual+Site)))
+summary(m1)
+m1 <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Site+Condition(PlantIndividual+Community.x)))
+summary(m1)
+
+```
+
+#Ordination plot
+
+```{r}
+
+plot2<-plot_ordination(datp, mynmdsALLm, type="samples", color="Community.x",shape="Site",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  scale_shape_manual(values=c(5,3,16,15,17))+ 
+  geom_point(size = 2)+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(x=CAP1,y=CAP2,fill=Community.x),level=.95,inherit.aes = F)
+
+#with edges on the ellipse
+plot3 <- plot_ordination(datp, mynmdsALLm, type="samples", color="Community.x",shape="Site",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  scale_shape_manual(values=c(5,3,16,15,17))+ 
+  geom_point(size = 2)+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(x=CAP1,y=CAP2,fill=Community.x, color=Community.x),level=.95,inherit.aes = F)
+
+plot4 <- plot_ordination(datp, mynmdsALLm, type="samples", color="Community.x",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  geom_point(size = 2)+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(fill=Community.x),level=.95)
+
+#Using convex hulls USE THIS FOR MS
+site_scores2 <- data.frame(cbind(sample_data(datp),vegan::scores(mynmdsALLm)$sites,labels=rownames(vegan::scores(mynmdsALLm)$sites)))
+
+hull2 <- site_scores2 %>%
+  group_by(Community.x) %>%
+  slice(chull(CAP1,CAP2))
+
+plot2<-ggplot(site_scores2)+
+  theme_classic()+#  theme(legend.position = "none")
+  xlab("CAP1 [5.7%]") +  # 
+  ylab("CAP2 [2.8%]") +  # 
+  scale_shape_manual(values=c(5,3,16))+ 
+  geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
+  geom_polygon(data=hull2,aes(x=CAP1,y=CAP2, fill=Community.x,colour = Community.x),alpha=.2)
+
+#jaccard
+mynmdsALLj <- ordinate(datp, "CAP",distance(datp, method = "jaccard", binary = TRUE),formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
+anova(mynmdsALLj,by="margin",permutations = how(nperm=9999))
+
+plot5 <- plot_ordination(datp, mynmdsALLj, type="samples", color="Site",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  geom_point(size = 2)+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(fill=Site),level=.95)
+
+# figure for comp and mdp using bray-curtis dissimilarity for beta diveristy
+#pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/ordinationcompmpdhulls.pdf",height = 3.5,width = 11)
+ord2 <- plot_grid(plot1, plot2, nrow = 1, labels=c("A. Composition","B. MPD"),label_fontface = "plain",hjust=c(-.5,-1.),vjust=1)
+#dev.off()
+
+```
+
+# By Site
+Does host plant affect composition within each site?
+blocks=sample_data(datpTC)$HostPlant
+
+```{r}
+
+#P = Soddie
+
+datpP<-datp%>%
+  subset_samples(Site=="P")%>%
+  filter_taxa(function(x) sum(x>0) >0, prune=T)
+unifracP<-subset_dist(datpP, unifracp)
+MPDdistP<-subset_dist(datpP, MPDdist)
+
+mynmdsPj <- ordinate(datpP, "CAP",distance(datpP, method = "jaccard", binary = TRUE),formula=as.formula(~Community.x+Condition(PlantIndividual)))
+anova(mynmdsPj,by="margin",permutations = how(nperm=9999))
+
+mynmdsPu <- ordinate(datpP, "CAP",distance=unifracP,formula=as.formula(~Community.x+Condition(PlantIndividual)))
+anova(mynmdsPu,by="terms",permutations = how(nperm=9999))
+
+mynmdsPm <- ordinate(datpP, "CAP",distance=MPDdistP,formula=as.formula(~Community.x))
+anova(mynmdsPm,by="terms",permutations = how(nperm=9999))
+
+ordP <- plot_ordination(datpP, mynmdsPm, type="samples", color="Community.x",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  geom_point(size = 2)+
+  #scale_color_manual(values = c("#0047b3", "#99c2ff","#2d862d","#79d279","#b30000","#ff8080"),labels = c("Fresh Native", "Fresh Phragmites","Brackish Native","Brackish Phragmites","Saline Native","Saline Phragmites"),name = "Marsh class/Invasion")+
+  #scale_fill_manual(values = c("#0047b3", "#99c2ff","#2d862d","#79d279","#b30000","#ff8080"),labels = c("Fresh Native", "Fresh Phragmites","Brackish Native","Brackish Phragmites","Saline Native","Saline Phragmites"),name = "Marsh class/Invasion")+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(fill=Community.x),level=.95)
+
+
+#Q = Saddle
+
+datpQ<-datp%>%
+  subset_samples(Site=="Q")%>%
+  filter_taxa(function(x) sum(x>0) >0, prune=T)
+unifracQ<-subset_dist(datpQ, unifracp)
+MPDdistQ<-subset_dist(datpQ, MPDdist)
+
+mynmdsQj <- ordinate(datpQ, "CAP",distance(datpQ, method = "jaccard", binary = TRUE),formula=as.formula(~Community.x+Condition(PlantIndividual)))
+anova(mynmdsQj,by="terms",permutations = how(nperm=9999))
+
+mynmdsQu <- ordinate(datpQ, "CAP",distance=unifracQ,formula=as.formula(~Community.x+Condition(PlantIndividual)))
+anova(mynmdsQu,by="terms",permutations = how(nperm=9999))#
+
+mynmdsQm <- ordinate(datpQ, "CAP",distance=MPDdistQ,formula=as.formula(~Community.x+Condition(PlantIndividual)))
+anova(mynmdsQm,by="terms",permutations = how(nperm=9999))
+
+ordQ <- plot_ordination(datpQ, mynmdsQm, type="samples", color="Community.x",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  geom_point(size = 2)+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(fill=Community.x),level=.95)
+
+```
+
+
+
+# By Plant Community
+Does site affect composition within each site?
+
+plots show x as cap1 and y as mds1
+CAP1
+The constrained axis, which corresponds to variance in community composition that is explained by a conditioning variable.
+MDS1
+The unconstrained axis, which corresponds to variance in community composition that is not explained by a conditioning variable.
+CAP canonical analysis of principal coordinates, MDS multidimensional scaling
+
+```{r}
+#SB 
+
+datpSB<-datp%>%
+  subset_samples(Community.x=="SB")%>%
+  filter_taxa(function(x) sum(x>0) >0, prune=T)
+unifracSB<-subset_dist(datpSB, unifracp)
+MPDdistSB<-subset_dist(datpSB, MPDdist)
+
+#jaccard
+mynmdsSBj <- ordinate(datpSB, "CAP",distance(datpSB, method = "jaccard", binary = TRUE),formula=as.formula(~Site+Condition(PlantIndividual)))
+anova(mynmdsSBj,by="terms",permutations = how(nperm=9999))
+
+#unifrac
+mynmdsSBu <- ordinate(datpSB, "CAP",distance=unifracSB,formula=as.formula(~Site+Condition(PlantIndividual)))#
+anova(mynmdsSBu,by="terms",permutations = how(nperm=9999))
+
+#bray-curtis
+mynmdsSBm <- ordinate(datpSB, "CAP",distance=MPDdistSB,formula=as.formula(~Site+Condition(PlantIndividual)))
+anova(mynmdsSBm,by="terms",permutations = how(nperm=9999))
+
+ordSB <- plot_ordination(datpSB, mynmdsSBm, type="samples", color="Site",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  geom_point(size = 2)+
+  #scale_color_manual(values = c("#0047b3", "#99c2ff","#2d862d","#79d279","#b30000","#ff8080"),labels = c("Fresh Native", "Fresh Phragmites","Brackish Native","Brackish Phragmites","Saline Native","Saline Phragmites"),name = "Marsh class/Invasion")+
+  #scale_fill_manual(values = c("#0047b3", "#99c2ff","#2d862d","#79d279","#b30000","#ff8080"),labels = c("Fresh Native", "Fresh Phragmites","Brackish Native","Brackish Phragmites","Saline Native","Saline Phragmites"),name = "Marsh class/Invasion")+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(fill=Site),level=.95)
+
+
+#MM 
+
+datpMM<-datp%>%
+  subset_samples(Community.x=="MM")%>%
+  filter_taxa(function(x) sum(x>0) >0, prune=T)
+unifracMM<-subset_dist(datpMM, unifracp)
+MPDdistMM<-subset_dist(datpMM, MPDdist)
+
+#jaccard
+mynmdsMMj <- ordinate(datpMM, "CAP",distance(datpMM, method = "jaccard", binary = TRUE),formula=as.formula(~Site+Condition(PlantIndividual)))
+anova(mynmdsMMj,by="margin",permutations = how(nperm=9999))
+
+#unifrac
+mynmdsMMu <- ordinate(datpMM, "CAP",distance=unifracMM,formula=as.formula(~Site+Condition(PlantIndividual)))
+anova(mynmdsMMu,by="margin",permutations = how(nperm=9999))
+
+#bray-curtis
+mynmdsMMm <- ordinate(datpMM, "CAP",distance=MPDdistMM,formula=as.formula(~Site+Condition(PlantIndividual)))
+anova(mynmdsMMm,by="margin",permutations = how(nperm=9999))
+
+ordMM <- plot_ordination(datpMM, mynmdsMMm, type="samples", color="Site",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  geom_point(size = 2)+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(fill=Site),level=.95)
+
+
+#DM 
+
+datpDM<-datp%>%
+  subset_samples(Community.x=="DM")%>%
+  filter_taxa(function(x) sum(x>0) >0, prune=T)
+unifracDM<-subset_dist(datpDM, unifracp)
+MPDdistDM<-subset_dist(datpDM, MPDdist)
+
+#jaccard
+mynmdsDMj <- ordinate(datpDM, "CAP",distance(datpDM, method = "jaccard", binary = TRUE),formula=as.formula(~Site))
+anova(mynmdsDMj,by="terms",permutations = how(nperm=9999))
+
+#unifrac
+mynmdsDMu <- ordinate(datpDM, "CAP",distance=unifracDM,formula=as.formula(~Site))
+anova(mynmdsDMu,by="terms",permutations = how(nperm=9999))
+
+#bray-curtis
+mynmdsDMm <- ordinate(datpDM, "CAP",distance=MPDdistDM,formula=as.formula(~Site))
+anova(mynmdsDMm,by="terms",permutations = how(nperm=9999))
+
+ordDM <- plot_ordination(datpDM, mynmdsDMm, type="samples", color="Site",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  geom_point(size = 2)+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(fill=Site),level=.95)
+
+#FF
+
+datpFF<-datp%>%
+  subset_samples(Community.x=="FF")%>%
+  filter_taxa(function(x) sum(x>0) >0, prune=T)
+unifracFF<-subset_dist(datpFF, unifracp)
+MPDdistFF<-subset_dist(datpFF, MPDdist)
+
+#jaccard
+mynmdsFFj <- ordinate(datpFF, "CAP",distance(datpFF, method = "jaccard", binary = TRUE),formula=as.formula(~Site))
+anova(mynmdsFFj,by="terms",permutations = how(nperm=9999))
+
+#unifrac
+mynmdsFFu <- ordinate(datpFF, "CAP",distance=unifracFF,formula=as.formula(~Site))
+anova(mynmdsFFu,by="terms",permutations = how(nperm=9999))
+
+#bray-curtis
+mynmdsFFm <- ordinate(datpFF, "CAP",distance=MPDdistFF,formula=as.formula(~Site))
+anova(mynmdsFFm,by="terms",permutations = how(nperm=9999))
+
+ordFF <- plot_ordination(datpFF, mynmdsFFm, type="samples", color="Site",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  geom_point(size = 2)+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(fill=Site),level=.95)
+
+```
+
+# alpha diversity by site
+
+```{r}
+div<-dat6%>%
+  dplyr::select(Community.x,Site,OTU0:OTU9)%>%
+  mutate(Community.x =  factor(Community.x, levels = c("SB", "MM", "DM", "FF"))) %>%
+  arrange(Community.x)
+
+data_richness <- estimateR(div[,3:36]) 
+
+# calculate evenness index using vegan package
+data_evenness <- diversity(div[,3:36]) / log(specnumber(div[,3:36]))
+
+# calculate Shannon index using vegan package
+data_shannon <- diversity(div[,3:36], index = "shannon")
+
+# calculate Shannon index using vegan package
+data_simpson <- diversity(div[,3:36], index = "simpson")
+
+# combine all indices in one data table
+data_alphadiv <- cbind(div[,1:2], t(data_richness), data_shannon, data_simpson, data_evenness)
+colnames(data_alphadiv)[1] <- "Community"
+
+# remove the unnecessary data/vector
+rm(data_richness, data_evenness, data_shannon, data_simpson)
+
+alpha1 <- ggplot(data_alphadiv, aes(x= Site, y=S.obs,color=Site)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Richness', x= ' ', y= '', tag = "A") +
+  geom_point()
+
+alpha2 <- ggplot(data_alphadiv, aes(x=Site, y=S.chao1,color=Site)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Chao1', x= ' ', y= '', tag = "C") +
+  geom_point()
+
+alpha3 <- ggplot(data_alphadiv, aes(x=Site, y=data_evenness,color=Site)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Eveness', x= ' ', y= '', tag = "B") +
+  geom_point()
+
+alpha4 <- ggplot(data_alphadiv, aes(x=Site, y=data_shannon,color=Site)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Shannon', x= ' ', y= '', tag = "D") +
+  geom_point()
+
+alpha5 <- ggplot(data_alphadiv, aes(x=Site, y=data_simpson,color=Site)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Simpson', x= ' ', y= '', tag = "E") +
+  geom_point()
+
+# all plots together using the patchwork package
+alphaall <- (alpha1 | alpha3) / (alpha2 | alpha4 | alpha5)
+
+```
+
+# alpha diveristy by community
+
+```{r}
+
+alpha1 <- ggplot(data_alphadiv, aes(x= Community, y=S.obs,color=Community)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Richness', x= ' ', y= '', tag = "A") +
+  geom_point()
+
+alpha2 <- ggplot(data_alphadiv, aes(x=Community, y=S.chao1,color=Community)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Chao1', x= ' ', y= '', tag = "C") +
+  geom_point()
+
+alpha3 <- ggplot(data_alphadiv, aes(x=Community, y=data_evenness,color=Community)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Eveness', x= ' ', y= '', tag = "B") +
+  geom_point()
+
+alpha4 <- ggplot(data_alphadiv, aes(x=Community, y=data_shannon,color=Community)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Shannon', x= ' ', y= '', tag = "D") +
+  geom_point()
+
+alpha5 <- ggplot(data_alphadiv, aes(x=Community, y=data_simpson,color=Community)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Simpson', x= ' ', y= '', tag = "E") +
+  geom_point()
+
+# all plots together using the patchwork package
+alphaall2 <- (alpha1 | alpha3) / (alpha2 | alpha4 | alpha5)
+
+```
+
+#both site and community
+
+```{r}
+
+alpha1 <- ggplot(data_alphadiv, aes(x= Community, y=S.obs,color=Community)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Richness', x= ' ', y= '', tag = "A") +
+  geom_point()+
+  facet_wrap(vars(Site),strip.position = "left", nrow=2)+
+  theme(strip.text.x = element_text(size=0))
+
+alpha2 <- ggplot(data_alphadiv, aes(x=Community, y=S.chao1,color=Community)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Chao1', x= ' ', y= '', tag = "A") +
+  geom_point()+
+  facet_wrap(vars(Site), nrow=2)+
+  theme(strip.text.x = element_text(size=0))
+
+alpha3 <- ggplot(data_alphadiv, aes(x=Community, y=data_evenness,color=Community)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Eveness', x= ' ', y= '', tag = "B") +
+  geom_point() +
+  facet_wrap(vars(Site), nrow=2)+
+  theme(strip.text.x = element_text(size=0))
+
+alpha4 <- ggplot(data_alphadiv, aes(x=Community, y=data_shannon,color=Community)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Shannon', x= ' ', y= '', tag = "B") +
+  geom_point()+
+  facet_wrap(vars(Site), nrow=2)+
+  theme(strip.text.x = element_text(size=0))
+
+alpha5 <- ggplot(data_alphadiv, aes(x=Community, y=data_simpson,color=Community)) +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=10),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",panel.spacing=unit(0,"cm"),strip.placement = "outside")+
+  geom_boxplot() +
+  labs(title= 'Simpson', x= ' ', y= '', tag = "C") +
+  geom_point()+
+  facet_wrap(vars(Site), nrow=2)+
+  theme(strip.text.x = element_text(size=0))+
+   theme(axis.title.y = element_text(vjust = .5, angle = 0, size = 30))
+
+# all plots together using the patchwork package
+alphaall3 <- (alpha2 | alpha4 | alpha5)
+alphaall3 <- alphaall3 + 
+  facet_grid(Site ~.)+
+  theme(strip.text = element_text(size = 12, color = "black"),panel.spacing.y = unit(.5, "cm"))
+
+```
+
+#indexes
+
+```{r}
+
+data_alphadiv_tidy <- 
+  data_alphadiv %>%
+  mutate(sample_id = rownames(data_alphadiv)) %>%
+  gather(key   = alphadiv_index,
+         value = obs_values,
+         -Community, -Site)
+
+head(data_alphadiv_tidy)
+
+
+al <- data_alphadiv_tidy %>%  
+  filter(alphadiv_index == "S.obs") %>%  
+  # fct_relevel() in forecats package to rearrange the sites and months as we want (chronologic) 
+  ggplot(., aes(x = Community, y = obs_values,color=Community)) +  
+  geom_boxplot(aes(fill = Community)) +  
+  geom_point() +  
+  facet_grid(. ~ Site) +  
+  labs(y = "Richness", x = "") +  
+  # x axis label reoriented for better readability  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+al2 <- data_alphadiv_tidy %>%  
+  filter(alphadiv_index == "S.chao1") %>%  
+  # fct_relevel() in forecats package to rearrange the sites and months as we want (chronologic) 
+  ggplot(., aes(x = Community, y = obs_values,color=Community)) +  
+  geom_boxplot(aes(fill = Community)) +  
+  geom_point() +  
+  facet_grid(. ~ Site) +  
+  labs(y = "Chao", x = "") +  
+  # x axis label reoriented for better readability  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+al3 <- data_alphadiv_tidy %>%  
+  filter(alphadiv_index == "data_evenness") %>%  
+  # fct_relevel() in forecats package to rearrange the sites and months as we want (chronologic) 
+  ggplot(., aes(x = Community, y = obs_values,color=Community)) +  
+  geom_boxplot(aes(fill = Community)) +  
+  geom_point() +  
+  facet_grid(. ~ Site) +  
+  labs(y = "Evenness", x = "") +  
+  # x axis label reoriented for better readability  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+al4 <- data_alphadiv_tidy %>%  
+  filter(alphadiv_index == "data_shannon") %>%  
+  # fct_relevel() in forecats package to rearrange the sites and months as we want (chronologic) 
+  ggplot(., aes(x = Community, y = obs_values,color=Community)) +  
+  geom_boxplot(aes(fill = Community)) +  
+  geom_point() +  
+  facet_grid(. ~ Site) +  
+  labs(y = "Shannon", x = "") +  
+  # x axis label reoriented for better readability  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+al5 <- data_alphadiv_tidy %>%  
+  filter(alphadiv_index == "data_simpson") %>%  
+  # fct_relevel() in forecats package to rearrange the sites and months as we want (chronologic) 
+  ggplot(., aes(x = Community, y = obs_values,color=Community)) +  
+  geom_boxplot(aes(fill = Community)) +  
+  geom_point() +  
+  facet_grid(. ~ Site) +  
+  labs(y = "Shannon", x = "") +  
+  # x axis label reoriented for better readability  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
