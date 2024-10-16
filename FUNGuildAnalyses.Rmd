@@ -1,6 +1,19 @@
 #FUNGuild analyses
 
-only FF-Q had plant pathogen
+# Libraries
+
+```{r}
+
+library(plotrix)
+library(patchwork)
+
+```
+# Plant Pathogen
+
+only FF-Q had 1 plant pathogen
+This was the only one that was confident it was a plant pathogen
+There were other samples that could possibly be other things as well
+
 ``` {r}
 head(dat7)
 dat7$plantpathogenpercent<-dat7$plantpathogen/dat7$totalabundance*100
@@ -17,13 +30,14 @@ options(contrasts=c("contr.helmert","contr.poly"))
 
 pathmean<-dat7%>%
   group_by(Community.x,Site)%>%
+    mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))%>%
   summarise(mean=mean(plantpathogentaxapercent),se=std.error(plantpathogentaxapercent),count=n())
 
 #pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/richness.pdf",width=6.6,height=3.5)
-fun <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
-  labs(x = "",y="Path") +
+funp <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
+  labs(x = "",y="Pathogen") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  theme(line=element_line(size=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) +
   facet_wrap(vars(Site),strip.position = "bottom")
@@ -31,31 +45,187 @@ fun <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Communit
 
 pathmean<-dat7%>%
   group_by(Community.x)%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))%>%
   summarise(mean=mean(plantpathogentaxapercent),se=std.error(plantpathogentaxapercent),count=n())
 
-fun2 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
-  labs(x = "",y="Path") +
+funp2 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
+  labs(x = "",y="") +
   theme_classic()+
-  theme(line=element_line(size=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",size=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) 
 
 ```
 
-## Stats
+# Ericoid Mycorrhizal
+
+``` {r}
+head(dat7)
+dat7$ericoidpercent<-dat7$ericoid/dat7$totalabundance*100
+dat7$ericoidtaxapercent<-dat7$ericoidtaxa/dat7$SR*100
+dat7$ericoidbroadpercent<-dat7$ericoidbroad/dat7$totalabundance*100
+dat7$ericoidbroadprobablehppercent<-dat7$ericoidbroadprobablehp/dat7$totalabundance*100
+dat7$ericoidbroadprobablehptaxapercent<-dat7$ericoidbroadprobablehptaxa/dat7$SR*100
+
+options(contrasts=c("contr.helmert","contr.poly"))
+
+
+pathmean<-dat7%>%
+  group_by(Community.x,Site)%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))%>%
+  summarise(mean=mean(ericoidtaxapercent),se=std.error(ericoidtaxapercent),count=n())
+
+#pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/richness.pdf",width=6.6,height=3.5)
+funer <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
+  labs(x = "",y="Ericoid Mycorrhizal") +
+  theme_classic()+
+  theme(line=element_line(size=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  geom_point(size=2.75)+
+  geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) +
+  facet_wrap(vars(Site),strip.position = "bottom")
+#dev.off()
+
+pathmean<-dat7%>%
+  group_by(Community.x)%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))%>%
+  summarise(mean=mean(ericoidtaxapercent),se=std.error(ericoidtaxapercent),count=n())
+
+funer2 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
+  labs(x = "",y="") +
+  theme_classic()+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  geom_point(size=2.75)+
+  geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) 
+
+```
+# Symbiotroph
 
 ```{r}
-m1<-lme(plantpathogentaxapercent~Community.x+Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
-anova(m1,type="marginal")
-hist(resid(m1))
-boxplot(resid(m1)~dat7$CommunitySitePL)
 
-m2<-lme(plantpathogentaxapercent~Community.x*Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
-anova(m2,type="marginal")
+pathmean<-dat7%>%
+  group_by(Community.x,Site)%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))%>%
+  summarise(mean=mean(symbiotrophtaxapercent),se=std.error(symbiotrophtaxapercent),count=n())
+
+#pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/richness.pdf",width=6.6,height=3.5)
+funsym <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
+  labs(x = "",y="Symbiotroph") +
+  theme_classic()+
+  theme(line=element_line(size=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  geom_point(size=2.75)+
+  geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) +
+  facet_wrap(vars(Site),strip.position = "bottom")
+#dev.off()
+
+pathmean<-dat7%>%
+  group_by(Community.x)%>%
+    mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))%>%
+  summarise(mean=mean(symbiotrophtaxapercent),se=std.error(symbiotrophtaxapercent),count=n())
+
+funsym2 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
+  labs(x = "",y="") +
+  theme_classic()+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  geom_point(size=2.75)+
+  geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1)
+
+```
+# Saprotroph
+
+```{r}
+
+head(dat7)
+dat7$saprotrophpercent<-dat7$saprotroph/dat7$totalabundance*100
+dat7$saprotrophtaxapercent<-dat7$saprotrophtaxa/dat7$SR*100
+dat7$saprotrophbroadpercent<-dat7$saprotrophbroad/dat7$totalabundance*100
+dat7$saprotrophbroadprobablehppercent<-dat7$saprotrophbroadprobablehp/dat7$totalabundance*100
+dat7$saprotrophbroadprobablehptaxapercent<-dat7$saprotrophbroadprobablehptaxa/dat7$SR*100
+
+options(contrasts=c("contr.helmert","contr.poly"))
+
+
+pathmean<-dat7%>%
+  group_by(Community.x,Site)%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))%>%
+  summarise(mean=mean(saprotrophtaxapercent),se=std.error(saprotrophtaxapercent),count=n())
+
+#pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/richness.pdf",width=6.6,height=3.5)
+funsap <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
+  labs(x = "",y="Saprotroph") +
+  theme_classic()+
+  theme(line=element_line(size=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  geom_point(size=2.75)+
+  geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) +
+  facet_wrap(vars(Site),strip.position = "bottom")
+#dev.off()
+
+pathmean<-dat7%>%
+  group_by(Community.x)%>%
+  mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))%>%
+  summarise(mean=mean(saprotrophtaxapercent),se=std.error(saprotrophtaxapercent),count=n())
+
+funsap2 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
+  labs(x = "",y="") +
+  theme_classic()+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  geom_point(size=2.75)+
+  geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) 
+
+
+```
+# Large funguild figure
+
+```{r}
+
+# all plots together using the patchwork package
+funall <- (funp | funp2) / (funer | funer2)
+funall <- funall + plot_annotation(
+  title = 'Average Percentage',
+  theme = theme(plot.title = element_text(hjust = 0.5)))
+
+funall2 <- (funsym | funsym2) / (funsap | funsap2)
 
 ```
 
-##### Pie charts by species #####
+
+## Stats
+
+```{r}
+m1p<-lme(plantpathogentaxapercent~Community.x+Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
+anova(m1p,type="marginal")
+hist(resid(m1p))
+boxplot(resid(m1p)~dat7$CommunitySitePL)
+
+m2p<-lme(plantpathogentaxapercent~Community.x*Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
+anova(m2p,type="marginal")
+
+m1e<-lme(ericoidtaxapercent~Community.x+Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
+anova(m1e,type="marginal")
+hist(resid(m1e))
+boxplot(resid(m1e)~dat7$CommunitySitePL)
+
+m2e<-lme(ericoidtaxapercent~Community.x*Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
+anova(m2e,type="marginal")
+
+m1sym<-lme(symbiotrophtaxapercent~Community.x+Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
+anova(m1sym,type="marginal")
+hist(resid(m1sym))
+boxplot(resid(m1sym)~dat7$CommunitySitePL)
+
+m2sym<-lme(symbiotrophtaxapercent~Community.x*Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
+anova(m2sym,type="marginal")
+
+m1sap<-lme(saprotrophtaxapercent~Community.x+Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
+anova(m1sap,type="marginal")
+hist(resid(m1sap))
+boxplot(resid(m1sap)~dat7$CommunitySitePL)
+
+m2sap<-lme(saprotrophtaxapercent~Community.x*Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
+anova(m2sap,type="marginal")
+
+```
+
+# Pie charts by species
 this didn't seem very useful so I discontinued
 get the full list of taxa from each species, and make a pie chart
 

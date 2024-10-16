@@ -75,6 +75,7 @@ library(nlme)
 
 #BiocManager::install("dada2")
 library(dada2)
+library(ggmap)
 
 ```
 
@@ -251,7 +252,7 @@ geumroot2<-geumroot%>%
   unite(CultureID,otu,Taxon.assignment,remove=F)%>%
   dplyr::select(Query.sequence,CultureID,Community_Type_3HXRGT5G,Site_3HXRGT5G,Latitude_3HXRGT5G,Longitude_3HXRGT5G,otu,Trophic.Mode,Guild,Taxon.assignment,GenusSpecies)%>%
   rename(Community=Community_Type_3HXRGT5G,Site=Site_3HXRGT5G,Lat=Latitude_3HXRGT5G,Long=Longitude_3HXRGT5G)%>%
-mutate(Community = factor(Community, levels = c("DM", "SB", "FF", "MM")),Site = factor(Site, levels = c("P", "Q")))
+mutate(Community = factor(Community, levels = c("SB", "MM", "DM", "FF")),Site = factor(Site, levels = c("P", "Q")))
 head(geumroot2)
 
 length(geumroot2$CultureID)
@@ -405,11 +406,22 @@ head(guilds2)
 ind<-which(guilds2$guild=="Plant Pathogen")
 plantpathogen<-colSums(guilds2[ind,20:63])
 plantpathogentaxa<-colSums(guilds2[ind,20:63]>0)
+ind<-which(guilds2$guild=="Ericoid Mycorrhizal")
+ericoid<-colSums(guilds2[ind,20:63])
+ericoidtaxa<-colSums(guilds2[ind,20:63]>0)
+ind<-which(guilds2$trophicMode=="Saprotroph")
+saprotroph<-colSums(guilds2[ind,20:63])
+saprotrophtaxa<-colSums(guilds2[ind,20:63]>0)
 
 ind<-funguild_query("*Plant Pathogen*", "guild", db = guilds2)$OTU#trophicMode
 ind2<-which(guilds2$OTU%in%ind)
 plantpathogenbroad<-colSums(guilds2[ind2,20:63])
 plantpathogenbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+
+ind<-funguild_query("*Ericoid Mycorrhizal*", "guild", db = guilds2)$OTU#trophicMode
+ind2<-which(guilds2$OTU%in%ind)
+ericoidbroad<-colSums(guilds2[ind2,20:63])
+ericoidbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
 
 ind<-funguild_query("*Plant Pathogen*", "guild", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
@@ -428,13 +440,30 @@ ind3<-which(guilds2$OTU%in%ind2)
 symbiotrophprobablehp<-colSums(guilds2[ind3,20:63])
 symbiotrophprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
 
+ind<-funguild_query("*Ericoid Mycorrhizal*", "guild", db = guilds2)#trophicMode
+ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
+ind3<-which(guilds2$OTU%in%ind2)
+ericoidbroadprobablehp<-colSums(guilds2[ind3,20:63])
+ericoidbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
+
+ind<-funguild_query("*Saprotroph*", "trophicMode", db = guilds2)$OTU#trophicMode
+ind2<-which(guilds2$OTU%in%ind)
+saprotrophbroad<-colSums(guilds2[ind2,20:63])
+saprotrophbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+
+ind<-funguild_query("*Saprotroph*", "trophicMode", db = guilds2)#trophicMode
+ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
+ind3<-which(guilds2$OTU%in%ind2)
+saprotrophbroadprobablehp<-colSums(guilds2[ind3,20:63])
+saprotrophbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
+
 totalabundance<-colSums(guilds2[,20:63])
 
 temp<-data.frame(sample_data(datp))
 temp$rownames<-rownames(temp)
 temp<-temp%>%
   dplyr::select(rownames,CommunitySitePL)
-temp2<-data.frame(temp,plantpathogen,plantpathogenbroad,plantpathogenbroadprobablehp,symbiotroph,symbiotrophprobablehp,totalabundance,plantpathogentaxa,plantpathogenbroadtaxa,plantpathogenbroadprobablehptaxa,symbiotrophtaxa,symbiotrophprobablehptaxa)
+temp2<-data.frame(temp,plantpathogen,ericoid,ericoidtaxa,ericoidbroad, ericoidbroadtaxa,plantpathogenbroad,plantpathogenbroadprobablehp,symbiotroph,symbiotrophprobablehp,totalabundance,plantpathogentaxa,plantpathogenbroadtaxa,plantpathogenbroadprobablehptaxa,symbiotrophtaxa,symbiotrophprobablehptaxa,ericoidbroadprobablehp,ericoidbroadprobablehptaxa,saprotroph,saprotrophtaxa,saprotrophbroad,saprotrophbroadtaxa,saprotrophbroadprobablehp,saprotrophbroadprobablehptaxa)
 
 dat7<-dat6%>%
   full_join(temp2)
@@ -450,6 +479,37 @@ datp #phyloseq object
 head(dat6) #big data frame, wide data format, dat3 plus PD and MPD data
 dat7 #dat6 plus funguild pathogens/symbiotrophs
 dat2 #long dataformat 
+```
+
+# Map
+
+``` {r}
+
+mapsheet <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/CultureMastersheet.csv")
+
+Longitude <- mapsheet$DDLongitude
+Latitude <- mapsheet$DDLatitude
+
+register_stadiamaps(key ="d2f32a9d-6671-47c9-aae7-ccf6f1476c02")
+
+smallmap <- get_stadiamap( bbox = c(left=-105.6, bottom =40.045, right =-105.57, top =40.065), maptype = "outdoors")
+
+
+sm <- ggmap(smallmap) +
+  geom_point(
+      aes(Longitude, Latitude), data = mapsheet, 
+    shape = 21, color = "gray25", fill = "yellow"
+  )
+
+bigmap <- get_stadiamap( bbox = c(left=-106, bottom =39.75, right =-105.25, top =40.25), maptype = "outdoors")
+
+
+bm <- ggmap(bigmap) +
+  geom_point(
+      aes(Longitude, Latitude), data = mapsheet, 
+    shape = 21, color = "gray25", fill = "yellow"
+  )
+
 ```
 
 # git hub token stuff

@@ -7,6 +7,12 @@ library(remotes)
 #remotes::install_github("jfq3/QsRutils")
 library(QsRutils)
 library(patchwork)
+library(forcats)
+library(picante)
+library(cowplot)
+library(agricolae)
+library(tidyr)
+library(car)
 
 ```
 
@@ -352,6 +358,7 @@ ordFF <- plot_ordination(datpFF, mynmdsFFm, type="samples", color="Site",axes=c(
 
 ```
 
+
 # alpha diversity by site
 
 ```{r}
@@ -374,6 +381,8 @@ data_simpson <- diversity(div[,3:36], index = "simpson")
 # combine all indices in one data table
 data_alphadiv <- cbind(div[,1:2], t(data_richness), data_shannon, data_simpson, data_evenness)
 colnames(data_alphadiv)[1] <- "Community"
+data_alphadiv = data_alphadiv %>% 
+  unite(Community_Site, c(,1:2), sep = "_", remove = FALSE)
 
 # remove the unnecessary data/vector
 rm(data_richness, data_evenness, data_shannon, data_simpson)
@@ -517,6 +526,107 @@ alphaall3 <- (alpha2 | alpha4 | alpha5)
 alphaall3 <- alphaall3 + 
   facet_grid(Site ~.)+
   theme(strip.text = element_text(size = 12, color = "black"),panel.spacing.y = unit(.5, "cm"))
+
+```
+
+# Stats for alpha diveristy, Shannon
+
+```{r}
+
+#no significnat effect of the sampling site Pr(>F)=0.127
+shan_site <- summary(aov(data_shannon ~ Site, data = data_alphadiv))
+
+# theres a significant difference in the plant community Pr(>F)=0.0495
+shan_com = aov(data_shannon ~ Community, data = data_alphadiv)
+summary(shan_com)
+
+# post-hoc test
+hsd_test <- TukeyHSD(shan_com) # require the agricolae package  
+hsd_res <- HSD.test(shan_com, "Community", group=T)$groups  
+show(hsd_res)
+#DM and FF are significantly different from eachother, MM and SB are the same, DM is not signifcantly different from MM and SB, FF is not significantly different from MM and SB
+
+shan_sitecom <- summary(aov(data_shannon ~ Site * Community, data = data_alphadiv))
+# there is no significant difference in the site Pr(>F)=0.1050
+# would the community be considered significant? Pr(>F)=0.0511
+# there is no significant difference in the interaction Pr(>F)=0.3453
+
+shan_comsite <- summary(aov(data_shannon ~ Community_Site, data = data_alphadiv))   
+hsd_test <- TukeyHSD(aov_test)
+hsd_res <- HSD.test(aov_test, "Community_Site", group = TRUE)$groups  
+hsd_res
+# DM_P and FF_Q are significantly different
+
+```
+
+# Stats for alpha diveristy, Chao
+
+```{r}
+
+#no significnat effect of the sampling site Pr(>F)=0.0569??
+summary(aov(S.chao1 ~ Site, data = data_alphadiv))
+
+# theres no significant difference in the plant community Pr(>F)=0.148
+aov_test = aov(S.chao1 ~ Community, data = data_alphadiv)
+summary(aov_test)
+
+# post-hoc test
+hsd_test <- TukeyHSD(aov_test) # require the agricolae package  
+hsd_res <- HSD.test(aov_test, "Community", group=T)$groups  
+show(hsd_res)
+#theres no significant difference between any plant communities
+#why is DM not different?
+
+summary(aov(S.chao1 ~ Site * Community, data = data_alphadiv))
+# there is no significant difference in the site? Pr(>F)=0.0542
+# there is no significant difference in the community Pr(>F)=0.1677
+# there is no significant difference in the interaction Pr(>F)=0.5625
+
+aov_test <- aov(S.chao1 ~ Community_Site, data = data_alphadiv) 
+hsd_test <- TukeyHSD(aov_test)
+hsd_res <- HSD.test(aov_test, "Community_Site", group = TRUE)$groups  
+hsd_res
+# theres no significant difference between any communiy/sites
+
+```
+
+# Stats for alpha diveristy, Simpson
+
+```{r}
+
+#no significant effect of the sampling site Pr(>F)=0.287
+summary(aov(data_simpson ~ Site, data = data_alphadiv))
+
+# theres no significant difference in the plant community? Pr(>F)=0.0502
+aov_test = aov(data_simpson ~ Community, data = data_alphadiv)
+summary(aov_test)
+
+# post-hoc test
+hsd_test <- TukeyHSD(aov_test) # require the agricolae package  
+hsd_res <- HSD.test(aov_test, "Community", group=T)$groups  
+show(hsd_res)
+#DM and FF are significantly different from eachother, MM and SB are the same, DM is not signifcantly different from MM and SB, FF is not significantly different from MM and SB
+
+summary(aov(data_simpson ~ Site * Community, data = data_alphadiv))
+# there is no significant difference in the site Pr(>F)=0.2557
+# would the community be considered significant? Pr(>F)=0.0531
+# there is no significant difference in the interaction Pr(>F)=0.3117
+
+aov_test <- aov(data_simpson ~ Community_Site, data = data_alphadiv) 
+hsd_test <- TukeyHSD(aov_test)
+hsd_res <- HSD.test(aov_test, "Community_Site", group = TRUE)$groups  
+hsd_res
+# DM_P and FF_Q are significantly different
+
+```
+# Stats table
+
+```{r}
+
+shan_model <- aov(data_shannon ~ Community * Site,
+            data = data_alphadiv)
+
+sstable <- rbind(shan_model)
 
 ```
 
