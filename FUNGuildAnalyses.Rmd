@@ -6,6 +6,7 @@
 
 library(plotrix)
 library(patchwork)
+library(agricolae)
 
 ```
 # Plant Pathogen
@@ -188,7 +189,9 @@ funall2 <- (funsym | funsym2) / (funsap | funsap2)
 ```
 
 
-## Stats
+# Stats
+
+## Anovas
 
 ```{r}
 m1p<-lme(plantpathogentaxapercent~Community.x+Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
@@ -222,6 +225,70 @@ boxplot(resid(m1sap)~dat7$CommunitySitePL)
 
 m2sap<-lme(saprotrophtaxapercent~Community.x*Site,random=~1|PlantIndividual,data=dat7,na.action=na.omit)
 anova(m2sap,type="marginal")
+
+```
+##Tukey
+
+```{r}
+#plant pathogen
+tuk_p = aov(plantpathogentaxapercent ~ Community.x, data = dat7)
+summary(tuk_p)
+
+hsd_path <- TukeyHSD(tuk_p) # require the agricolae package  
+hsd_path2 <- HSD.test(tuk_p, "Community.x", group=T)$groups  
+show(hsd_path2)
+
+tuk_ps = aov(plantpathogentaxapercent ~ Site, data = dat7)
+summary(tuk_ps)
+
+hsd_ps <- TukeyHSD(tuk_ps) # require the agricolae package  
+hsd_ps2 <- HSD.test(tuk_ps, "Site", group=T)$groups  
+show(hsd_ps2)
+
+#ericoid mycorrhizal
+tuk_e = aov(ericoidtaxapercent ~ Community.x, data = dat7)
+summary(tuk_e)
+
+hsd_e <- TukeyHSD(tuk_e) # require the agricolae package  
+hsd_e2 <- HSD.test(tuk_e, "Community.x", group=T)$groups  
+show(hsd_e2)
+
+tuk_es = aov(ericoidtaxapercent ~ Site, data = dat7)
+summary(tuk_es)
+
+hsd_es <- TukeyHSD(tuk_es) # require the agricolae package  
+hsd_es2 <- HSD.test(tuk_es, "Site", group=T)$groups  
+show(hsd_es2)
+
+#symbiotrophs
+tuk_sym = aov(symbiotrophtaxapercent ~ Community.x, data = dat7)
+summary(tuk_sym)
+
+hsd_sym <- TukeyHSD(tuk_sym) # require the agricolae package  
+hsd_sym2 <- HSD.test(tuk_sym, "Community.x", group=T)$groups  
+show(hsd_sym2)
+
+tuk_sys = aov(symbiotrophtaxapercent ~ Site, data = dat7)
+summary(tuk_sys)
+
+hsd_sys <- TukeyHSD(tuk_sys) # require the agricolae package  
+hsd_sys2 <- HSD.test(tuk_sys, "Site", group=T)$groups  
+show(hsd_sys2)
+
+#saprotrophs
+tuk_sap = aov(saprotrophtaxapercent ~ Community.x, data = dat7)
+summary(tuk_sap)
+
+hsd_sap <- TukeyHSD(tuk_sap) # require the agricolae package  
+hsd_sap2 <- HSD.test(tuk_sap, "Community.x", group=T)$groups  
+show(hsd_sap2)
+
+tuk_sas = aov(saprotrophtaxapercent ~ Site, data = dat7)
+summary(tuk_sas)
+
+hsd_sas <- TukeyHSD(tuk_sas) # require the agricolae package  
+hsd_sas2 <- HSD.test(tuk_sas, "Site", group=T)$groups  
+show(hsd_sas2)
 
 ```
 
