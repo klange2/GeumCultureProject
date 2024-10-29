@@ -559,7 +559,6 @@ bm <- ggmap(bigmap) +
 ```
 
 # git hub token stuff
-okay
 
 ```{r}
 install.packages("gitcreds")
