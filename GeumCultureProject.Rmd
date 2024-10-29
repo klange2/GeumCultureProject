@@ -560,6 +560,7 @@ bm <- ggmap(bigmap) +
 
 # git hub token stuff
 #Kaceys token: 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
+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
 
 ```{r}
 install.packages("gitcreds")
