@@ -179,7 +179,7 @@ Query.sequence is also unique to each isolate. It is the sample number (1-250).
 geumroot <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archive3HXRGT5G_/assignments_report_addvoucher3HXRGT5G.csv")
 
 #query sequence 136 was a bad sample
-geumroot <- geumroot[-c(104),]
+geumroot <- geumroot[-c(104,39),]
 colnames(geumroot)[16]<- "otu" 
 colnames(geumroot)[1]<- "Query.sequence"
 geumroot$Query.sequence <- sprintf("%03d", geumroot$Query.sequence) #changing the numbers to 3 characters to match the contigs
@@ -213,11 +213,11 @@ plot(trimmednwk)
 cleanedtree <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree.txt")
 
 #tip 136 was a weird sample and was throiwng mpd data off so it is removed
-dropped_tip_136 <- drop.tip(cleanedtree, tip= '136', trim.internal = TRUE, subtree = FALSE,
+dropped_tips <- drop.tip(cleanedtree, tip= c('136','043'), trim.internal = TRUE, subtree = FALSE,
                           root.edge = 0, rooted = is.rooted(cleanedtree), collapse.singles = TRUE,
                           interactive = FALSE)
 
-write.tree(dropped_tip_136, file = "C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk", append = FALSE,
+write.tree(dropped_tips, file = "C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk", append = FALSE,
            digits = 5, tree.names = FALSE)
 
 cleanedtree_v2 <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk")
@@ -235,7 +235,7 @@ Culture IDs are unique to the sequence. It contains the site, community, and pla
 
 ```{r}
 culture <- read_sheet("https://docs.google.com/spreadsheets/d/1Ys3msUUPmmOo1NeRqHfsdhJzU_mEwBOytZe6AmAribQ/edit?gid=0#gid=0", sheet = "Sheet1", na='NULL')
-culture <- culture[-c(136),]
+culture <- culture[-c(136,43),]
 
 culture2<-culture%>%
   dplyr::select(Query.sequence,...3)%>%
@@ -274,7 +274,7 @@ dat3<-dat2%>%
   ungroup()%>%
   unite(CommunitySitePL,Community.x,Site,PlantIndividual,remove=F)%>%
   spread(otu,abundance,fill=0)
-dat.comm<-data.frame(dat3[,5:38])
+dat.comm<-data.frame(dat3[,5:37])
 row.names(dat.comm)<-dat3$CommunitySitePL
 
 ```
@@ -285,7 +285,7 @@ row.names(dat.comm)<-dat3$CommunitySitePL
 
 PD<-pd(dat.comm,cleanedtree_v2)
 
-dat4<-data.frame(dat3[,1:4],PD,dat3[,5:38])
+dat4<-data.frame(dat3[,1:4],PD,dat3[,5:37])
 ```
 
 ## MPD by CommunitySitePL
@@ -311,7 +311,7 @@ dat5<-dat4%>%
   full_join(ses.mpd.result.weighted1)
   
   
-dat6<-data.frame(dat5[,1:6],dat5[,41:42],dat5[,7:40])
+dat6<-data.frame(dat5[,1:6],dat5[,40:41],dat5[,7:39])
 head(dat6)
 
 ```
@@ -319,7 +319,7 @@ head(dat6)
 ## Phyloseq Object
 
 ```{r}
-otus<-dat6[,9:42]
+otus<-dat6[,9:41]
 otus2<-t(otus)
 sampleotus<-dat6[,c(1:8)]
 taxonomyotus<-as.matrix(data.frame(Kingdom=row.names(otus2),Phylum=row.names(otus2),Class=row.names(otus2),Order=row.names(otus2),Class=row.names(otus2),Family=row.names(otus2),Genus=row.names(otus2),Species=row.names(otus2)))
@@ -348,7 +348,7 @@ unite.ref <- "C:/Users/Kacey/Documents/Tulane/Lab/Culture/UNITE/sh_general_relea
 myotus<-read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archive3HXRGT5G_/assignments_report_nodups3HXRGT5G.csv",header=T);rownames(myotus)<-myotus$abundance
 
 #throwing out query sequence 136
-myotus <- myotus[-c(3),]
+myotus <- myotus[-c(3,34),]
 myotus$Query.sequence <- sprintf("%03d", myotus$Query.sequence)
 
 myotus2 <- myotus[,c(21,16)]
@@ -559,6 +559,7 @@ bm <- ggmap(bigmap) +
 ```
 
 # git hub token stuff
+Kaceys token: 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
 
 ```{r}
 install.packages("gitcreds")

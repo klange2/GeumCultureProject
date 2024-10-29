@@ -533,7 +533,6 @@ non2 <- (funp7|funp8)/(funp3|funp4)
 non3 <- (funsap3|funsap4)/(funpsap3|funpsap4)
 non4 <- (funer3|funer4)
 
-
 ```
 
 
@@ -568,12 +567,12 @@ hist(resid(m5p))
 boxplot(resid(m5p)~dat7$CommunitySitePL)
 m6p<-lm(pathotrophtaxapercent~Site,data=dat7,na.action=na.omit)
 anova(m6p)
-m7p<-lm(pathotrophbroadprobablehptaxapercent~Community.x,data=dat7,na.action=na.omit)
-anova(m7p)
+m7p<-gls(pathotrophbroadprobablehptaxapercent~Community.x*Site,data=dat7,na.action=na.omit)
+anova(m7p,type="marginal")
 hist(resid(m7p))
 boxplot(resid(m7p)~dat7$CommunitySitePL)
-m8p<-lm(pathotrophbroadprobablehptaxapercent~Site,data=dat7,na.action=na.omit)
-anova(m8p)
+m8p<-gls(pathotrophbroadprobablehptaxapercent~Site*Community.x,data=dat7,na.action=na.omit)
+anova(m8p,type="marginal")
 
 
 #ericoid
