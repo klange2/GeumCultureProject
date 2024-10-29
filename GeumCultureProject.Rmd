@@ -403,59 +403,97 @@ head(guilds)
 guilds2<-guilds%>%
   full_join(otutomerge)
 head(guilds2)
+guilds2 <- guilds2[-c(3),]
+
+#confident indicies 
 ind<-which(guilds2$guild=="Plant Pathogen")
 plantpathogen<-colSums(guilds2[ind,20:63])
 plantpathogentaxa<-colSums(guilds2[ind,20:63]>0)
+ind<-which(guilds2$trophicMode=="Pathotroph")
+pathotroph<-colSums(guilds2[ind,20:63])
+pathotrophtaxa<-colSums(guilds2[ind,20:63]>0)
 ind<-which(guilds2$guild=="Ericoid Mycorrhizal")
 ericoid<-colSums(guilds2[ind,20:63])
 ericoidtaxa<-colSums(guilds2[ind,20:63]>0)
+ind<-which(guilds2$trophicMode=="Symbiotroph")
+symbiotroph<-colSums(guilds2[ind,20:63])
+symbiotrophtaxa<-colSums(guilds2[ind,20:63]>0)
 ind<-which(guilds2$trophicMode=="Saprotroph")
 saprotroph<-colSums(guilds2[ind,20:63])
 saprotrophtaxa<-colSums(guilds2[ind,20:63]>0)
+ind<-which(guilds2$guild=="Plant Saprotroph")
+plantsaprotroph<-colSums(guilds2[ind,20:63])
+plantsaprotrophtaxa<-colSums(guilds2[ind,20:63]>0)
+ind<-which(guilds2$guild=="Endophyte")
+endophyte<-colSums(guilds2[ind,20:63])
+endophytetaxa<-colSums(guilds2[ind,20:63]>0)
 
+# not confident indicies
 ind<-funguild_query("*Plant Pathogen*", "guild", db = guilds2)$OTU#trophicMode
 ind2<-which(guilds2$OTU%in%ind)
 plantpathogenbroad<-colSums(guilds2[ind2,20:63])
 plantpathogenbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
-
+ind<-funguild_query("*Pathotroph*", "trophicMode", db = guilds2)$OTU#trophicMode
+ind2<-which(guilds2$OTU%in%ind)
+pathotrophbroad<-colSums(guilds2[ind2,20:63])
+pathotrophbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
 ind<-funguild_query("*Ericoid Mycorrhizal*", "guild", db = guilds2)$OTU#trophicMode
 ind2<-which(guilds2$OTU%in%ind)
 ericoidbroad<-colSums(guilds2[ind2,20:63])
 ericoidbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+ind<-funguild_query("*Symbiotroph*", "trophicMode", db = guilds2)$OTU
+ind2<-which(guilds2$OTU%in%ind)
+symbiotrophbroad<-colSums(guilds2[ind2,20:63])
+symbiotrophbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+ind<-funguild_query("*Saprotroph*", "trophicMode", db = guilds2)$OTU#trophicMode
+ind2<-which(guilds2$OTU%in%ind)
+saprotrophbroad<-colSums(guilds2[ind2,20:63])
+saprotrophbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+ind<-funguild_query("*Plant Saprotroph*", "guild", db = guilds2)$OTU#trophicMode
+ind2<-which(guilds2$OTU%in%ind)
+plantsaprotrophbroad<-colSums(guilds2[ind2,20:63])
+plantsaprotrophbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+ind<-funguild_query("*Endophyte*", "guild", db = guilds2)$OTU#trophicMode
+ind2<-which(guilds2$OTU%in%ind)
+endophytebroad<-colSums(guilds2[ind2,20:63])
+endophytebroadtaxa<-colSums(guilds2[ind2,20:63]>0)
 
+#indicies with confidence ranking
 ind<-funguild_query("*Plant Pathogen*", "guild", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
 plantpathogenbroadprobablehp<-colSums(guilds2[ind3,20:63])
 plantpathogenbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
-
-ind<-funguild_query("*Symbiotroph*", "trophicMode", db = guilds2)$OTU
-ind2<-which(guilds2$OTU%in%ind)
-symbiotroph<-colSums(guilds2[ind2,20:63])
-symbiotrophtaxa<-colSums(guilds2[ind2,20:63]>0)
-
-ind<-funguild_query("*Symbiotroph*", "trophicMode", db = guilds2)
+ind<-funguild_query("*Pathotroph*", "trophicMode", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
-symbiotrophprobablehp<-colSums(guilds2[ind3,20:63])
-symbiotrophprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
-
+pathotrophbroadprobablehp<-colSums(guilds2[ind3,20:63])
+pathotrophbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
 ind<-funguild_query("*Ericoid Mycorrhizal*", "guild", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
 ericoidbroadprobablehp<-colSums(guilds2[ind3,20:63])
 ericoidbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
-
-ind<-funguild_query("*Saprotroph*", "trophicMode", db = guilds2)$OTU#trophicMode
-ind2<-which(guilds2$OTU%in%ind)
-saprotrophbroad<-colSums(guilds2[ind2,20:63])
-saprotrophbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
-
+ind<-funguild_query("*Symbiotroph*", "trophicMode", db = guilds2)
+ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
+ind3<-which(guilds2$OTU%in%ind2)
+symbiotrophbroadprobablehp<-colSums(guilds2[ind3,20:63])
+symbiotrophbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
 ind<-funguild_query("*Saprotroph*", "trophicMode", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
 saprotrophbroadprobablehp<-colSums(guilds2[ind3,20:63])
 saprotrophbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
+ind<-funguild_query("*Plant Saprotroph*", "guild", db = guilds2)#trophicMode
+ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
+ind3<-which(guilds2$OTU%in%ind2)
+plantsaprotrophbroadprobablehp<-colSums(guilds2[ind3,20:63])
+plantsaprotrophbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
+ind<-funguild_query("*Endophyte*", "guild", db = guilds2)#trophicMode
+ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
+ind3<-which(guilds2$OTU%in%ind2)
+endophytebroadprobablehp<-colSums(guilds2[ind3,20:63])
+endophytebroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
 
 totalabundance<-colSums(guilds2[,20:63])
 
@@ -463,7 +501,15 @@ temp<-data.frame(sample_data(datp))
 temp$rownames<-rownames(temp)
 temp<-temp%>%
   dplyr::select(rownames,CommunitySitePL)
-temp2<-data.frame(temp,plantpathogen,ericoid,ericoidtaxa,ericoidbroad, ericoidbroadtaxa,plantpathogenbroad,plantpathogenbroadprobablehp,symbiotroph,symbiotrophprobablehp,totalabundance,plantpathogentaxa,plantpathogenbroadtaxa,plantpathogenbroadprobablehptaxa,symbiotrophtaxa,symbiotrophprobablehptaxa,ericoidbroadprobablehp,ericoidbroadprobablehptaxa,saprotroph,saprotrophtaxa,saprotrophbroad,saprotrophbroadtaxa,saprotrophbroadprobablehp,saprotrophbroadprobablehptaxa)
+temp2<-data.frame(temp,
+plantpathogen,plantpathogentaxa,plantpathogenbroad,plantpathogenbroadtaxa,plantpathogenbroadprobablehp,plantpathogenbroadprobablehptaxa,
+pathotroph,pathotrophtaxa,pathotrophbroad,pathotrophbroadtaxa,pathotrophbroadprobablehp,pathotrophbroadprobablehptaxa,
+ericoid,ericoidtaxa,ericoidbroad,ericoidbroadtaxa,ericoidbroadprobablehp,ericoidbroadprobablehptaxa,
+symbiotroph,symbiotrophtaxa,symbiotrophbroad,symbiotrophbroadtaxa,symbiotrophbroadprobablehp,symbiotrophbroadprobablehptaxa,
+saprotroph,saprotrophtaxa,saprotrophbroad,saprotrophbroadtaxa,saprotrophbroadprobablehp,saprotrophbroadprobablehptaxa,
+plantsaprotroph,plantsaprotrophtaxa,plantsaprotrophbroad,plantsaprotrophbroadtaxa,plantsaprotrophbroadprobablehp,plantsaprotrophbroadprobablehptaxa,
+endophyte,endophytetaxa,endophytebroad,endophytebroadtaxa,endophytebroadprobablehp,endophytebroadprobablehptaxa,
+totalabundance)
 
 dat7<-dat6%>%
   full_join(temp2)

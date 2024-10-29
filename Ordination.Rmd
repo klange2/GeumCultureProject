@@ -15,6 +15,13 @@ library(tidyr)
 library(car)
 
 ```
+# ANOVA Helmert
+
+```{r}
+
+options(contrasts=c("contr.helmert","contr.poly"))
+
+```
 
 #Ordination 
 
@@ -58,7 +65,10 @@ datp3<-prune_samples(sample_sums(datp2)>=1, datp2)
 
 ```{r}
 #bray curtis
-mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
+#mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
+#anova(mynmdsALLb,by="margin",permutations = how(nperm=9999))
+
+mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site))
 anova(mynmdsALLb,by="margin",permutations = how(nperm=9999))
 
 #Getting variance explained
@@ -118,8 +128,9 @@ plot1<-ggplot(site_scores1)+
 ```{r}
 
 #MPD
-mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
+#mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
 #mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~HostPlant+Site))
+mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x+Site))
 anova(mynmdsALLm,by="margin",permutations = how(nperm=9999))
 #anova(mynmdsALLm,by="margin",permutations = how(blocks=sample_data(datp)$Year,nperm=9999)) #adding permutations within year does not change the anova results
 
@@ -534,7 +545,11 @@ alphaall3 <- alphaall3 +
 ```{r}
 
 #no significnat effect of the sampling site Pr(>F)=0.127
-shan_site <- summary(aov(data_shannon ~ Site, data = data_alphadiv))
+shan_site <- lm(data_shannon ~ Site, data = data_alphadiv,,na.action=na.omit)
+anova(shan_site)
+
+shan_com <- lm(data_shannon ~ Community, data = data_alphadiv,na.action=na.omit)
+anova(shan_com)
 
 # theres a significant difference in the plant community Pr(>F)=0.0495
 shan_com = aov(data_shannon ~ Community, data = data_alphadiv)
@@ -549,9 +564,13 @@ show(hsd_res)
 options(contrasts=c("contr.helmert","contr.poly"))
 
 shan_sitecom <- summary(aov(data_shannon ~ Site * Community, data = data_alphadiv))
+#anova(shan_sitecom)
 # there is no significant difference in the site Pr(>F)=0.1050
 # would the community be considered significant? Pr(>F)=0.0511
 # there is no significant difference in the interaction Pr(>F)=0.3453
+
+shan_comsite <- lm(data_shannon ~ Community_Site, data = data_alphadiv,na.action=na.omit) 
+anova(shan_comsite)
 
 shan_comsite <- aov(data_shannon ~ Community_Site, data = data_alphadiv) 
 summary(shan_comsite)
@@ -565,6 +584,12 @@ hsd_res
 # Stats for alpha diveristy, Chao
 
 ```{r}
+
+chao_site <- lm(S.chao1 ~ Site, data = data_alphadiv,na.action=na.omit)
+anova(chao_site)
+
+chao_com <- lm(S.chao1 ~ Community, data = data_alphadiv,na.action=na.omit)
+anova(chao_com)
 
 #no significnat effect of the sampling site Pr(>F)=0.0569??
 aov_test= (aov(S.chao1 ~ Site, data = data_alphadiv))
@@ -606,6 +631,12 @@ summary(aov(S.chao1 ~ Community * Site, data = data_alphadiv))
 
 ```{r}
 
+sim_site <- lm(data_simpson ~ Site, data = data_alphadiv,,na.action=na.omit)
+anova(sim_site)
+
+sim_com <- lm(data_simpson ~ Community, data = data_alphadiv,na.action=na.omit)
+anova(sim_com)
+
 #no significant effect of the sampling site Pr(>F)=0.287
 aov_test=(aov(data_simpson ~ Site, data = data_alphadiv))
 summary(aov_test)
@@ -629,6 +660,9 @@ summary(aov(data_simpson ~ Site * Community, data = data_alphadiv))
 # there is no significant difference in the site Pr(>F)=0.2557
 # would the community be considered significant? Pr(>F)=0.0531
 # there is no significant difference in the interaction Pr(>F)=0.3117
+
+sim_comsite <- lm(data_simpson ~ Community_Site, data = data_alphadiv,na.action=na.omit)
+anova(sim_comsite)
 
 summary(aov(data_simpson ~ Community * Site, data = data_alphadiv))
 

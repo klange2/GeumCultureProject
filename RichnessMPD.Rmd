@@ -20,6 +20,15 @@ library(forcats)
 library(ggtree)
 
 ```
+
+# ANOVA Helmert
+
+```{r}
+
+options(contrasts=c("contr.helmert","contr.poly"))
+
+```
+
 #Richness, PD, MPD
 should change to referencing dat6 (it is the same data I just added the MPD data to the dat4 dataframe)
 
@@ -141,19 +150,19 @@ m1<-gls(SR~Community.x+Site,data=dat6,na.action=na.omit)
 anova(m1,type="marginal")
 #statistically different
 
-m1<-lme(SR~Community.x+Site,random=~1|PlantIndividual,data=dat6,na.action=na.omit)
-anova(m1,type="marginal")
-#statistically different
+m1<-lm(SR~Community.x,data=dat6,,na.action=na.omit)
+anova(m1)
+#site is statistically different
 hist(resid(m1))
 boxplot(resid(m1)~dat6$CommunitySitePL)
 
-#with heterogeneous variances, not significant
-m1a<-lme(SR~Community.x+Site,random=~1|PlantIndividual,weights=varIdent(form=~1|Site*Community.x),data=dat6,na.action=na.omit)
-anova(m1,m1a)
-# not statistcially different
+m2<-lm(SR~Site,data=dat6,,na.action=na.omit)
+anova(m2)
+#site is statistically different
+hist(resid(m2))
+boxplot(resid(m2)~dat6$CommunitySitePL)
 
-#richness
-
+#tukey
 tuk_rc = aov(SR ~ Community.x, data = dat6)
 summary(tuk_rc)
 
@@ -325,13 +334,18 @@ options(contrasts=c("contr.treatment","contr.poly"))
 # m2<-gls(mpd.obs.z.weighted~HostPlant*Site,data=phragspartina,na.action=na.omit)
 # anova(m2,type="marginal")
 
-m1<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,data=dat6,na.action=na.omit)
-m2<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,weights=varIdent(form=~1|Site),data=dat6,na.action=na.omit)
-m3<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,weights=varIdent(form=~1|Community.x),data=dat6,na.action=na.omit)
+#m1<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,data=dat6,na.action=na.omit)
+#m2<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,weights=varIdent(form=~1|Site),data=dat6,na.action=na.omit)
+#m3<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,weights=varIdent(form=~1|Community.x),data=dat6,na.action=na.omit)
 #anova(m1,m2,m3)
-anova(m1,type="marginal")
+
+m1<-lm(mpd.obs.z.weighted~Community.x,data=dat6,na.action=na.omit)
+anova(m1)
 hist(resid(m1))
 plot(fitted(m1),resid(m1))
+
+m2<-lm(mpd.obs.z.weighted~Site,data=dat6,na.action=na.omit)
+anova(m2)
 
 #tukey
 tuk_mpd = aov(mpd.obs.z.weighted ~ Community.x, data = dat6)
