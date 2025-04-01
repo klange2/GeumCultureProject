@@ -12,8 +12,6 @@ output: html_document
   
 followed instructions: https://github.com/bioc/sangeranalyseR
 
-github acces token: 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li
-
 ``` {r}
 #library(ggplot2)
 library(readxl)
@@ -164,22 +162,22 @@ Kacey:
 -ITS locus is included (first FASTA) - filter unknowns to selected taxon and generate UNITE report
 -Run RDP with UNITE (ITS), and FunGuild
 -Cluster on only one locus
--Cluster at 0.99
+-Cluster at 0.97
 -Create OTU fasta files
 -RAxML with de novo tree construction
 
 
-*use result files from run 3HXRGT5G. This is good one.*
+*use result files from run QIZ4LVYB. This is good one.*
 
 T-BAS data:
 OTU is the otu name that was input for the isolate name in T-BAS, every isolate has a unique OTU.
 Query.sequence is also unique to each isolate. It is the sample number (1-250).
 
 ```{r}
-geumroot <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archive3HXRGT5G_/assignments_report_addvoucher3HXRGT5G.csv")
+geumroot <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveQIZ4LVYB_/assignments_report_addvoucherQIZ4LVYB.csv")
 
-#query sequence 136 was a bad sample
-geumroot <- geumroot[-c(104),]
+#query sequence 154 and 54 were OTU11
+geumroot <- geumroot[-c(44,155),]
 colnames(geumroot)[16]<- "otu" 
 colnames(geumroot)[1]<- "Query.sequence"
 geumroot$Query.sequence <- sprintf("%03d", geumroot$Query.sequence) #changing the numbers to 3 characters to match the contigs
@@ -188,15 +186,15 @@ geumroot$Query.sequence <- sprintf("%03d", geumroot$Query.sequence) #changing th
 
 ## Phylogenetic Tree
 
-TBAS tree with all sequences -> 3HXRGT5G.nwk
-TBAS tree after selecting all query sequences and pruning the tree -> PM2RLCID.nwk *this is what I want*
+TBAS tree with all sequences -> QIZ4LVYB.nwk
+TBAS tree after selecting all query sequences and pruning the tree -> CM5WSVTT.nwk *this is what I want*
 
 Change tip labels to oTU numbers 
 
 ```{r}
 #newtree <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archive3HXRGT5G_/3HXRGT5G.nwk")
 
-trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archivePM2RLCID_/PM2RLCID.nwk")
+trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveCM5WSVTT_/CM5WSVTT.nwk.txt")
 
 # tree with species names 
 #trimmednwk$tip.label <- geumroot[[12]][match(trimmednwk$tip.label, geumroot[[1]])]
@@ -210,14 +208,14 @@ trimmednwk$tip.label <- geumroot[[16]][match(trimmednwk$tip.label, geumroot[[1]]
 
 plot(trimmednwk)
 
-cleanedtree <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree.txt")
+cleanedtree <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveCM5WSVTT_/CM5WSVTT.nwk.txt")
 
-#tip 136 was a weird sample and was throiwng mpd data off so it is removed
-dropped_tip_136 <- drop.tip(cleanedtree, tip= '136', trim.internal = TRUE, subtree = FALSE,
+#tip 154 was a weird sample and was throiwng mpd data off so it is removed
+dropped_tip_154 <- drop.tip(cleanedtree, tip= c('154'), trim.internal = TRUE, subtree = FALSE,
                           root.edge = 0, rooted = is.rooted(cleanedtree), collapse.singles = TRUE,
                           interactive = FALSE)
 
-write.tree(dropped_tip_136, file = "C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk", append = FALSE,
+write.tree(dropped_tip_154, file = "C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk", append = FALSE,
            digits = 5, tree.names = FALSE)
 
 cleanedtree_v2 <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk")
@@ -235,7 +233,7 @@ Culture IDs are unique to the sequence. It contains the site, community, and pla
 
 ```{r}
 culture <- read_sheet("https://docs.google.com/spreadsheets/d/1Ys3msUUPmmOo1NeRqHfsdhJzU_mEwBOytZe6AmAribQ/edit?gid=0#gid=0", sheet = "Sheet1", na='NULL')
-culture <- culture[-c(136),]
+culture <- culture[-c(54,154),]
 
 culture2<-culture%>%
   dplyr::select(Query.sequence,...3)%>%
@@ -250,8 +248,8 @@ culture2$Query.sequence <- sprintf("%03d", culture2$Query.sequence)
 
 geumroot2<-geumroot%>%
   unite(CultureID,otu,Taxon.assignment,remove=F)%>%
-  dplyr::select(Query.sequence,CultureID,Community_Type_3HXRGT5G,Site_3HXRGT5G,Latitude_3HXRGT5G,Longitude_3HXRGT5G,otu,Trophic.Mode,Guild,Taxon.assignment,GenusSpecies)%>%
-  rename(Community=Community_Type_3HXRGT5G,Site=Site_3HXRGT5G,Lat=Latitude_3HXRGT5G,Long=Longitude_3HXRGT5G)%>%
+  dplyr::select(Query.sequence,CultureID,Community_Type_QIZ4LVYB,Site_QIZ4LVYB,Latitude_QIZ4LVYB,Longitude_QIZ4LVYB,otu,Trophic.Mode,Guild,Taxon.assignment,GenusSpecies)%>%
+  rename(Community=Community_Type_QIZ4LVYB,Site=Site_QIZ4LVYB,Lat=Latitude_QIZ4LVYB,Long=Longitude_QIZ4LVYB)%>%
 mutate(Community = factor(Community, levels = c("SB", "MM", "DM", "FF")),Site = factor(Site, levels = c("P", "Q")))
 head(geumroot2)
 
@@ -274,7 +272,7 @@ dat3<-dat2%>%
   ungroup()%>%
   unite(CommunitySitePL,Community.x,Site,PlantIndividual,remove=F)%>%
   spread(otu,abundance,fill=0)
-dat.comm<-data.frame(dat3[,5:38])
+dat.comm<-data.frame(dat3[,5:37])
 row.names(dat.comm)<-dat3$CommunitySitePL
 
 ```
@@ -283,15 +281,15 @@ row.names(dat.comm)<-dat3$CommunitySitePL
 
 ```{r}
 
-PD<-pd(dat.comm,cleanedtree_v2)
+PD<-pd(dat.comm,trimmednwk)
 
-dat4<-data.frame(dat3[,1:4],PD,dat3[,5:38])
+dat4<-data.frame(dat3[,1:4],PD,dat3[,5:37])
 ```
 
 ## MPD by CommunitySitePL
 
 ```{r}
-phydist <- cophenetic(cleanedtree_v2)
+phydist <- cophenetic(trimmednwk)
 ses.mpd.result.notweighted <- ses.mpd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=FALSE, runs=999) #takes 5 min with 999
 ses.mpd.result.notweighted
 ses.mpd.result.notweighted$CommunitySitePL<-rownames(ses.mpd.result.notweighted)
@@ -311,7 +309,37 @@ dat5<-dat4%>%
   full_join(ses.mpd.result.weighted1)
   
   
-dat6<-data.frame(dat5[,1:6],dat5[,41:42],dat5[,7:40])
+#dat6<-data.frame(dat5[,1:6],dat5[,41:42],dat5[,7:40])
+#head(dat6)
+
+```
+
+## MNTD
+
+```{r}
+phydist <- cophenetic(trimmednwk)
+ses.mntd.result.notweighted <- ses.mntd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=FALSE, runs=999) #takes 5 min with 999
+ses.mntd.result.notweighted
+ses.mntd.result.notweighted$CommunitySitePL<-rownames(ses.mntd.result.notweighted)
+ses.mntd.result.notweighted1<-ses.mntd.result.notweighted%>%
+  select(CommunitySitePL,mntd.obs.z)%>%
+  rename(mntd.obs.z.notweighted=mntd.obs.z)
+
+ses.mntd.result.weighted <- ses.mntd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=TRUE, runs=999) #takes 5 min with 999
+ses.mntd.result.weighted
+ses.mntd.result.weighted$CommunitySitePL<-rownames(ses.mntd.result.weighted)
+ses.mntd.result.weighted1<-ses.mntd.result.weighted%>%
+  select(CommunitySitePL,mntd.obs.z)%>%
+  rename(mntd.obs.z.weighted=mntd.obs.z)
+
+dat5<-dat4%>%
+  full_join(ses.mntd.result.notweighted1)%>%
+  full_join(ses.mntd.result.weighted1)%>%
+  full_join(ses.mpd.result.notweighted1)%>%
+  full_join(ses.mpd.result.weighted1)
+  
+  
+dat6<-data.frame(dat5[,1:6],dat5[,40:43],dat5[,7:39])
 head(dat6)
 
 ```
@@ -319,16 +347,16 @@ head(dat6)
 ## Phyloseq Object
 
 ```{r}
-otus<-dat6[,9:42]
+otus<-dat6[,11:43]
 otus2<-t(otus)
-sampleotus<-dat6[,c(1:8)]
+sampleotus<-dat6[,c(1:10)]
 taxonomyotus<-as.matrix(data.frame(Kingdom=row.names(otus2),Phylum=row.names(otus2),Class=row.names(otus2),Order=row.names(otus2),Class=row.names(otus2),Family=row.names(otus2),Genus=row.names(otus2),Species=row.names(otus2)))
 rownames(taxonomyotus)<-row.names(otus2)
 
-datp <- merge_phyloseq(otu_table(otus2,taxa_are_rows = T), tax_table(taxonomyotus), sample_data(sampleotus),cleanedtree_v2)
+datp <- merge_phyloseq(otu_table(otus2,taxa_are_rows = T), tax_table(taxonomyotus), sample_data(sampleotus),trimmednwk)
 
 #calculate unifrac distances
-unifracp<-unifrac(otus,cleanedtree_v2)
+unifracp<-unifrac(otus,trimmednwk)
 ```
 
 # Testing Blasting to UNITE
@@ -345,15 +373,18 @@ unite.ref <- "C:/Users/Kacey/Documents/Tulane/Lab/Culture/UNITE/sh_general_relea
 
 
 #I got this data from assignments_report_nodupsM76GMYAB
-myotus<-read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archive3HXRGT5G_/assignments_report_nodups3HXRGT5G.csv",header=T);rownames(myotus)<-myotus$abundance
+myotus<-read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveQYR3BIB5_/assignments_report_nodupsQYR3BIB5.csv",header=T);rownames(myotus)<-myotus$abundance
 
-#throwing out query sequence 136
-myotus <- myotus[-c(3),]
+#throwing out query sequence 154 and 54 (OTU11)
+#myotus <- myotus[-c(2),]
 myotus$Query.sequence <- sprintf("%03d", myotus$Query.sequence)
 
-myotus2 <- myotus[,c(21,16)]
+myotus2 <- myotus[,c(52,47)]
 names(myotus2)[names(myotus2) == 'ITS'] <- 'sequence'
-names(myotus2)[names(myotus2) == 'otu'] <- 'abundance'
+names(myotus2)[names(myotus2) == 'otu.1'] <- 'abundance'
+
+#delete rows with no sequence
+myotus2 <- myotus2[!(is.na(myotus2$sequence) | myotus2$sequence==""), ]
 
 taxa<-assignTaxonomy(myotus2, unite.ref, multithread = TRUE, minBoot=70, tryRC = TRUE,outputBootstraps=T) #was minBoot=70
 taxaonly<-data.frame(taxa$tax);rownames(taxaonly)<-1:dim(taxa$tax)[1]
@@ -383,10 +414,12 @@ taxaonly2$taxonomy<-paste(taxaonly2$Kingdom,taxaonly2$Phylum,taxaonly2$Class,tax
 
 write.csv(taxaonly2,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/taxaonly.csv")
 
+taxaonly2 <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/taxaonly.csv")
+
 #the data frame that goes into the funguildR has to have a column named "Taxonomy" (has to be uppercase) and include your otu numbers too
-taxaonly3<-data.frame(myotus2[,2],taxaonly2[,2:8])
+taxaonly3<-data.frame(myotus2[,2],taxaonly2[,2:9])
 colnames(taxaonly3)[1] <- "OTU"
-colnames(taxaonly3)[8] <- "Taxonomy"
+colnames(taxaonly3)[9] <- "Taxonomy"
 #taxaonly3$OTU <- stringr::str_replace(taxaonly3$OTU, '\\OTU', '')
 
 guilds <- funguild_assign(taxaonly3)
@@ -403,99 +436,100 @@ head(guilds)
 guilds2<-guilds%>%
   full_join(otutomerge)
 head(guilds2)
-guilds2 <- guilds2[-c(3),]
+#throwing out query sequence 154 and 54 (OTU11)
+#guilds2 <- guilds2[-c(2),]
 
 #confident indicies 
 ind<-which(guilds2$guild=="Plant Pathogen")
-plantpathogen<-colSums(guilds2[ind,20:63])
-plantpathogentaxa<-colSums(guilds2[ind,20:63]>0)
+plantpathogen<-colSums(guilds2[ind,21:64])
+plantpathogentaxa<-colSums(guilds2[ind,21:64]>0)
 ind<-which(guilds2$trophicMode=="Pathotroph")
-pathotroph<-colSums(guilds2[ind,20:63])
-pathotrophtaxa<-colSums(guilds2[ind,20:63]>0)
+pathotroph<-colSums(guilds2[ind,21:64])
+pathotrophtaxa<-colSums(guilds2[ind,21:64]>0)
 ind<-which(guilds2$guild=="Ericoid Mycorrhizal")
-ericoid<-colSums(guilds2[ind,20:63])
-ericoidtaxa<-colSums(guilds2[ind,20:63]>0)
+ericoid<-colSums(guilds2[ind,21:64])
+ericoidtaxa<-colSums(guilds2[ind,21:64]>0)
 ind<-which(guilds2$trophicMode=="Symbiotroph")
-symbiotroph<-colSums(guilds2[ind,20:63])
-symbiotrophtaxa<-colSums(guilds2[ind,20:63]>0)
+symbiotroph<-colSums(guilds2[ind,21:64])
+symbiotrophtaxa<-colSums(guilds2[ind,21:64]>0)
 ind<-which(guilds2$trophicMode=="Saprotroph")
-saprotroph<-colSums(guilds2[ind,20:63])
-saprotrophtaxa<-colSums(guilds2[ind,20:63]>0)
+saprotroph<-colSums(guilds2[ind,21:64])
+saprotrophtaxa<-colSums(guilds2[ind,21:64]>0)
 ind<-which(guilds2$guild=="Plant Saprotroph")
-plantsaprotroph<-colSums(guilds2[ind,20:63])
-plantsaprotrophtaxa<-colSums(guilds2[ind,20:63]>0)
+plantsaprotroph<-colSums(guilds2[ind,21:64])
+plantsaprotrophtaxa<-colSums(guilds2[ind,21:64]>0)
 ind<-which(guilds2$guild=="Endophyte")
-endophyte<-colSums(guilds2[ind,20:63])
-endophytetaxa<-colSums(guilds2[ind,20:63]>0)
+endophyte<-colSums(guilds2[ind,21:64])
+endophytetaxa<-colSums(guilds2[ind,21:64]>0)
 
 # not confident indicies
 ind<-funguild_query("*Plant Pathogen*", "guild", db = guilds2)$OTU#trophicMode
 ind2<-which(guilds2$OTU%in%ind)
-plantpathogenbroad<-colSums(guilds2[ind2,20:63])
-plantpathogenbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+plantpathogenbroad<-colSums(guilds2[ind2,21:64])
+plantpathogenbroadtaxa<-colSums(guilds2[ind2,21:64]>0)
 ind<-funguild_query("*Pathotroph*", "trophicMode", db = guilds2)$OTU#trophicMode
 ind2<-which(guilds2$OTU%in%ind)
-pathotrophbroad<-colSums(guilds2[ind2,20:63])
-pathotrophbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+pathotrophbroad<-colSums(guilds2[ind2,21:64])
+pathotrophbroadtaxa<-colSums(guilds2[ind2,21:64]>0)
 ind<-funguild_query("*Ericoid Mycorrhizal*", "guild", db = guilds2)$OTU#trophicMode
 ind2<-which(guilds2$OTU%in%ind)
-ericoidbroad<-colSums(guilds2[ind2,20:63])
-ericoidbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+ericoidbroad<-colSums(guilds2[ind2,21:64])
+ericoidbroadtaxa<-colSums(guilds2[ind2,21:64]>0)
 ind<-funguild_query("*Symbiotroph*", "trophicMode", db = guilds2)$OTU
 ind2<-which(guilds2$OTU%in%ind)
-symbiotrophbroad<-colSums(guilds2[ind2,20:63])
-symbiotrophbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+symbiotrophbroad<-colSums(guilds2[ind2,21:64])
+symbiotrophbroadtaxa<-colSums(guilds2[ind2,21:64]>0)
 ind<-funguild_query("*Saprotroph*", "trophicMode", db = guilds2)$OTU#trophicMode
 ind2<-which(guilds2$OTU%in%ind)
-saprotrophbroad<-colSums(guilds2[ind2,20:63])
-saprotrophbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+saprotrophbroad<-colSums(guilds2[ind2,21:64])
+saprotrophbroadtaxa<-colSums(guilds2[ind2,21:64]>0)
 ind<-funguild_query("*Plant Saprotroph*", "guild", db = guilds2)$OTU#trophicMode
 ind2<-which(guilds2$OTU%in%ind)
-plantsaprotrophbroad<-colSums(guilds2[ind2,20:63])
-plantsaprotrophbroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+plantsaprotrophbroad<-colSums(guilds2[ind2,21:64])
+plantsaprotrophbroadtaxa<-colSums(guilds2[ind2,21:64]>0)
 ind<-funguild_query("*Endophyte*", "guild", db = guilds2)$OTU#trophicMode
 ind2<-which(guilds2$OTU%in%ind)
-endophytebroad<-colSums(guilds2[ind2,20:63])
-endophytebroadtaxa<-colSums(guilds2[ind2,20:63]>0)
+endophytebroad<-colSums(guilds2[ind2,21:64])
+endophytebroadtaxa<-colSums(guilds2[ind2,21:64]>0)
 
 #indicies with confidence ranking
 ind<-funguild_query("*Plant Pathogen*", "guild", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
-plantpathogenbroadprobablehp<-colSums(guilds2[ind3,20:63])
-plantpathogenbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
+plantpathogenbroadprobablehp<-colSums(guilds2[ind3,21:64])
+plantpathogenbroadprobablehptaxa<-colSums(guilds2[ind3,21:64]>0)
 ind<-funguild_query("*Pathotroph*", "trophicMode", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
-pathotrophbroadprobablehp<-colSums(guilds2[ind3,20:63])
-pathotrophbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
+pathotrophbroadprobablehp<-colSums(guilds2[ind3,21:64])
+pathotrophbroadprobablehptaxa<-colSums(guilds2[ind3,21:64]>0)
 ind<-funguild_query("*Ericoid Mycorrhizal*", "guild", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
-ericoidbroadprobablehp<-colSums(guilds2[ind3,20:63])
-ericoidbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
+ericoidbroadprobablehp<-colSums(guilds2[ind3,21:64])
+ericoidbroadprobablehptaxa<-colSums(guilds2[ind3,21:64]>0)
 ind<-funguild_query("*Symbiotroph*", "trophicMode", db = guilds2)
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
-symbiotrophbroadprobablehp<-colSums(guilds2[ind3,20:63])
-symbiotrophbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
+symbiotrophbroadprobablehp<-colSums(guilds2[ind3,21:64])
+symbiotrophbroadprobablehptaxa<-colSums(guilds2[ind3,21:64]>0)
 ind<-funguild_query("*Saprotroph*", "trophicMode", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
-saprotrophbroadprobablehp<-colSums(guilds2[ind3,20:63])
-saprotrophbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
+saprotrophbroadprobablehp<-colSums(guilds2[ind3,21:64])
+saprotrophbroadprobablehptaxa<-colSums(guilds2[ind3,21:64]>0)
 ind<-funguild_query("*Plant Saprotroph*", "guild", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
-plantsaprotrophbroadprobablehp<-colSums(guilds2[ind3,20:63])
-plantsaprotrophbroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
+plantsaprotrophbroadprobablehp<-colSums(guilds2[ind3,21:64])
+plantsaprotrophbroadprobablehptaxa<-colSums(guilds2[ind3,21:64]>0)
 ind<-funguild_query("*Endophyte*", "guild", db = guilds2)#trophicMode
 ind2<-ind[which(ind$confidenceRanking%in%c("Probable","Highly Probable")),"OTU"]
 ind3<-which(guilds2$OTU%in%ind2)
-endophytebroadprobablehp<-colSums(guilds2[ind3,20:63])
-endophytebroadprobablehptaxa<-colSums(guilds2[ind3,20:63]>0)
+endophytebroadprobablehp<-colSums(guilds2[ind3,21:64])
+endophytebroadprobablehptaxa<-colSums(guilds2[ind3,21:64]>0)
 
-totalabundance<-colSums(guilds2[,20:63])
+totalabundance<-colSums(guilds2[,21:64])
 
 temp<-data.frame(sample_data(datp))
 temp$rownames<-rownames(temp)
@@ -563,7 +597,7 @@ bm <- ggmap(bigmap) +
 ```{r}
 install.packages("gitcreds")
 library(gitcreds)
-gitcreds_set()
+gitcreds::gitcreds_set()
  #first when it asks to enter password or token I put my computer password
  #then do gitcreds_set() again and select 2, then paste my token
 #Note: use usename (email) and token, when RStudio wants the github password

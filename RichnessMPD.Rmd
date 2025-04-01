@@ -18,6 +18,8 @@ library(NLP)
 library(Polychrome)
 library(forcats)
 library(ggtree)
+library(asbio)
+library(ggpubr)
 
 ```
 
@@ -50,17 +52,17 @@ length(which(colSums(dat6DM)>0)) # 18 taxa in DM
 dat6MM<-dat6%>%
   filter(Community.x=="MM")%>%
   dplyr::select(OTU0:OTU9)
-length(which(colSums(dat6MM)>0)) # 18 taxa in MM
+length(which(colSums(dat6MM)>0)) # 16 taxa in MM
 
 dat6FF<-dat6%>%
   filter(Community.x=="FF")%>%
   dplyr::select(OTU0:OTU9)
-length(which(colSums(dat6FF)>0)) # 15 taxa in FF
+length(which(colSums(dat6FF)>0)) # 14 taxa in FF
 
 dat6SB<-dat6%>%
   filter(Community.x=="SB")%>%
   dplyr::select(OTU0:OTU9)
-length(which(colSums(dat6SB)>0)) # 13 taxa in SB
+length(which(colSums(dat6SB)>0)) # 16 taxa in SB
 
 #abundance
 rowSums(dat6[,9:42])
@@ -137,6 +139,20 @@ rm4 <- ggplot(richnessmean,aes(x=Community.x,y=mean,color=Community.x,group=Comm
   geom_point(size=1.8)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.25,size=.5) 
 
+#box plot with raw data
+richness<-dat6%>%
+  group_by(Community.x,Site)%>%
+  summarise(SR)
+
+rm5 <- ggplot(richness,aes(x=Community.x,y=SR,color=Community.x,group=Community.x))+
+  geom_boxplot()+
+  geom_point()+
+  labs(x = "",y="", title = "Richness", tag="A") +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  facet_grid(Site ~.)+
+  theme(strip.text.y = element_blank())
+
 ```
 
 ##Stats
@@ -150,7 +166,7 @@ m1<-gls(SR~Community.x+Site,data=dat6,na.action=na.omit)
 anova(m1,type="marginal")
 #statistically different
 
-m1<-lm(SR~Community.x,data=dat6,,na.action=na.omit)
+m1<-lm(SR~Community.x,data=dat6,na.action=na.omit)
 anova(m1)
 #site is statistically different
 hist(resid(m1))
@@ -176,6 +192,145 @@ summary(tuk_r)
 hsd_r <- TukeyHSD(tuk_r) # require the agricolae package  
 hsd_r2 <- HSD.test(tuk_r, "Site", group=T)$groups  
 show(hsd_r2)
+
+```
+#Calculating evenness
+
+## Evenness
+
+``` {r}
+
+div<-dat6%>%
+  dplyr::select(Community.x,Site,OTU0:OTU9)%>%
+  mutate(Community.x =  factor(Community.x, levels = c("SB", "MM", "DM", "FF"))) %>%
+  arrange(Community.x)
+
+# calculate evenness index using vegan package Pielou's measure of species evenness
+data_evenness <- diversity(div[,3:35]) / log(specnumber(div[,3:35]))
+
+data_alphadiv <- cbind(div[,1:2], t(data_richness), data_shannon, data_evenness)
+colnames(data_alphadiv)[1] <- "Community"
+data_alphadiv = data_alphadiv %>% 
+  unite(Community_Site, c(,1:2), sep = "_", remove = FALSE)
+
+even<-data_alphadiv%>%
+  group_by(Community,Site)%>%
+  summarise(data_evenness)
+
+#box plot with raw data
+ev <- ggplot(even,aes(x=Community,y=data_evenness,color=Community,group=Community))+
+  geom_boxplot()+
+  geom_point()+
+  labs(x = "",y="", title = "Evenness", tag="B") +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  facet_grid(Site ~.)+
+  theme(strip.text.y = element_blank())
+
+```
+
+##Stats
+
+``` {r}
+m1<-gls(data_evenness~Community+Site,data=data_alphadiv,na.action=na.omit)
+anova(m1,type="marginal")
+#statistically different
+
+m1<-lm(data_evenness~Community,data=data_alphadiv,na.action=na.omit)
+anova(m1)
+#site is statistically different
+hist(resid(m1))
+boxplot(resid(m1)~dat6$CommunitySitePL)
+
+m2<-lm(data_evenness~Site,data=data_alphadiv,,na.action=na.omit)
+anova(m2)
+#site is statistically different
+hist(resid(m2))
+boxplot(resid(m2)~dat6$CommunitySitePL)
+
+#tukey
+tuk_ec = aov(data_evenness ~ Community, data = data_alphadiv)
+summary(tuk_ec)
+
+hsd_ec <- TukeyHSD(tuk_ec) # require the agricolae package  
+hsd_ec2 <- HSD.test(tuk_ec, "Community", group=T)$groups  
+show(hsd_ec2)
+
+tuk_e = aov(data_evenness ~ Site, data = data_alphadiv)
+summary(tuk_e)
+
+hsd_e <- TukeyHSD(tuk_e) # require the agricolae package  
+hsd_e2 <- HSD.test(tuk_e, "Site", group=T)$groups  
+show(hsd_e2)
+
+```
+# Calculating Shannon diveristy
+
+##Shannon
+
+```{r}
+
+shan<-data_alphadiv%>%
+  group_by(Community,Site)%>%
+  summarise(data_shannon)
+
+levels(shan$Site) <- c("Soddie", "Saddle")
+
+#box plot with raw data
+shann <- ggplot(shan,aes(x=Community,y=data_shannon,color=Community,group=Community))+
+  geom_boxplot()+
+  geom_point()+
+  ylim(0, 2.1)+
+  labs(x = "",y="", title = "Shannon", tag="C") +
+  theme_classic()+
+  theme(line=element_line(linewidth = .3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  facet_grid(Site ~.)
+
+```
+
+##Stats
+``` {r}
+m1<-gls(data_shannon~Community+Site,data=data_alphadiv,na.action=na.omit)
+anova(m1,type="marginal")
+#statistically different
+
+m1<-lm(data_shannon~Community,data=data_alphadiv,na.action=na.omit)
+anova(m1)
+#site is statistically different
+hist(resid(m1))
+boxplot(resid(m1)~dat6$CommunitySitePL)
+
+m2<-lm(data_shannon~Site,data=data_alphadiv,,na.action=na.omit)
+anova(m2)
+#site is statistically different
+hist(resid(m2))
+boxplot(resid(m2)~dat6$CommunitySitePL)
+
+#tukey
+tuk_sc = aov(data_shannon ~ Community, data = data_alphadiv)
+summary(tuk_sc)
+
+hsd_sc <- TukeyHSD(tuk_sc) # require the agricolae package  
+hsd_sc2 <- HSD.test(tuk_sc, "Community", group=T)$groups  
+show(hsd_sc2)
+
+tuk_s = aov(data_shannon ~ Site, data = data_alphadiv)
+summary(tuk_s)
+
+hsd_s <- TukeyHSD(tuk_s) # require the agricolae package  
+hsd_s2 <- HSD.test(tuk_s, "Site", group=T)$groups  
+show(hsd_s2)
+
+```
+
+#Full plot
+
+```{r}
+
+#divplot <- ggarrange(rm5, ev, shan, ncol = 3, nrow = 1)
+divplot <- (rm5 | ev | shann)
+
+ggsave("divplot.png")
 
 ```
 
@@ -320,7 +475,7 @@ mpd4 <- ggplot(mpdmean,aes(x=Site,y=mean,color=Community.x,group=Community.x))+
   facet_wrap(~Community.x)#,strip.position = "bottom")
 
 options(contrasts=c("contr.helmert","contr.poly"))
-options(contrasts=c("contr.treatment","contr.poly"))
+#options(contrasts=c("contr.treatment","contr.poly"))
 
 ```
 
@@ -404,6 +559,74 @@ plot_grid(richfig, mpdfig, nrow = 2)
 dev.off()
 
 ```
+## MPD and MNTD
+
+```{r}
+
+mpd<-dat6%>%
+  group_by(Site,Community.x)%>%
+  filter(is.na(mpd.obs.z.weighted)==F)%>%
+  summarise(mpd.obs.z.weighted)
+
+levels(mpd$Site) <- c("Soddie", "Saddle")
+
+mpdfig<-ggplot(mpd,aes(x=Community.x,y=mpd.obs.z.weighted,color=Community.x,group=Community.x))+
+    geom_boxplot()+
+  geom_point()+
+  labs(x = "",y="",tag="A",title = "MPD") +
+  theme_classic()+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  geom_hline(yintercept=0,linetype="dashed")+
+  facet_wrap(vars(Site),strip.position = "bottom")
+
+mntd<-dat6%>%
+  group_by(Site,Community.x)%>%
+  filter(is.na(mntd.obs.z.weighted)==F)%>%
+  summarise(mntd.obs.z.weighted)
+
+levels(mntd$Site) <- c("Soddie", "Saddle")
+
+mntdfig<-ggplot(mntd,aes(x=Community.x,y=mntd.obs.z.weighted,color=Community.x,group=Community.x))+
+    geom_boxplot()+
+  geom_point()+
+  labs(x = "",y="",tag="B", title = "MNTD") +
+  theme_classic()+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  geom_hline(yintercept=0,linetype="dashed")+
+  facet_wrap(vars(Site),strip.position = "bottom")
+
+MDplot <- ggarrange(mpdfig, mntdfig, ncol = 2, nrow = 1)
+
+ggsave("MDplot.png")
+
+```
+## MNTD Stats
+
+``` {r}
+m1<-lm(mntd.obs.z.weighted~Community.x,data=dat6,na.action=na.omit)
+anova(m1)
+hist(resid(m1))
+plot(fitted(m1),resid(m1))
+
+m2<-lm(mntd.obs.z.weighted~Site,data=dat6,na.action=na.omit)
+anova(m2)
+
+#tukey
+tuk_mntd = aov(mntd.obs.z.weighted ~ Community.x, data = dat6)
+summary(tuk_mntd)
+
+hsd_mntd <- TukeyHSD(tuk_mntd) # require the agricolae package  
+hsd_mntd2 <- HSD.test(tuk_mntd, "Community.x", group=T)$groups  
+show(hsd_mntd2)
+
+tuk_mntds = aov(mntd.obs.z.weighted ~ Site, data = dat6)
+summary(tuk_mntds)
+
+hsd_mntds <- TukeyHSD(tuk_mntds) # require the agricolae package  
+hsd_mntds2 <- HSD.test(tuk_mntds, "Site", group=T)$groups  
+show(hsd_mntds2)
+
+```
 
 ## MPD trials
 
@@ -414,7 +637,7 @@ notes on results of unweighted vs weighted. the overall pattern is very similar,
 
 ```{r}
 
-phydist <- cophenetic(cleanedtree_v2)
+phydist <- cophenetic(trimmednwk)
 ses.mpd.result.ind <- ses.mpd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=FALSE, runs=999) #takes 5 min with 999
 ses.mpd.result.ind$CommunitySitePL<-rownames(ses.mpd.result.ind)
 ses.mpd.result.ind
@@ -478,7 +701,7 @@ anova(m2)
 Phrag TC is sig, Phrag LUMCON nearly sig; alterniflora CERF nearly sig, alternaflora LUMCON sig; patens CERF nearly sig
 
 ```{r}
-phydist <- cophenetic(cleanedtree_v2)
+phydist <- cophenetic(trimmednwk)
 
 dat.comm.sum<-dat6%>%
   group_by(Community.x,Site)%>%
@@ -556,7 +779,7 @@ labels <- guilds%>%
   dplyr::select(OTU,Genus,Species,trophicMode)
 labels$Genus <- stringr::str_replace(labels$Genus, 'g__', '')
 labels$Species <- stringr::str_replace(labels$Species, 's__', '')
-labels <- labels[-c(3),]
+#labels <- labels[-c(2),]
 labels <- labels%>%
   unite(GenusSpecies, Genus, Species)
 labels$OTUGS <- paste(labels$OTU, labels$GenusSpecies, sep="_")
@@ -637,10 +860,11 @@ cleanedtree_v2 <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum ro
 cleanedtree_v2$tip.label <- geumroot[[16]][match(cleanedtree_v2$tip.label, geumroot[[1]])]
 cleanedtree_v2$tip.label <- labels[[4]][match(cleanedtree_v2$tip.label, labels[[1]])]
 
+colnames(tree.data) <-  c("SB"," ","MM","  ","DM","   ","FF","    ")
 
 tree <- plotTree.datamatrix(cleanedtree_v2,tree.data,fsize=0.5,palettes=c("YlOrRd","PuBuGn"),yexp=1.12,xexp=2)
-leg <- legend(x="topright",names(tree$colors$DM_P),cex=0.7,pch=22,pt.bg=tree$colors$DM_P,pt.cex=1.5,bty="n",title="Soddie")
+leg <- legend(x="topright",names(tree$colors$DM),cex=0.7,pch=22,pt.bg=tree$colors$DM,pt.cex=1.5,bty="n",title="Soddie")
 #leg2 <- legend(x="bottomright",names(tree$colors$DM_Q),cex=0.7,pch=22,pt.bg=tree$colors$DM_Q,pt.cex=1.5,bty="n",title="Saddle")
-leg2 <- legend(x=(leg$rect$left), y=(leg$rect$top-leg$rect$h),names(tree$colors$DM_Q),cex=0.7,pch=22,pt.bg=tree$colors$DM_Q,pt.cex=1.5,bty="n",title="Saddle")
+leg2 <- legend(x=(leg$rect$left), y=(leg$rect$top-leg$rect$h),names(tree$colors$` `),cex=0.7,pch=22,pt.bg=tree$colors$` `,pt.cex=1.5,bty="n",title="Saddle")
 
 ```

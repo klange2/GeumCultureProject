@@ -13,6 +13,8 @@ library(cowplot)
 library(agricolae)
 library(tidyr)
 library(car)
+library(ggplot2)
+library(dplyr)
 
 ```
 # ANOVA Helmert
@@ -104,10 +106,12 @@ hull1 <- site_scores1 %>%
   group_by(Community.x) %>%
   slice(chull(CAP1,CAP2))
 
+#kacey use this one
 plot1<-ggplot(site_scores1)+
-  theme_classic()+#  theme(legend.position = "none")
-  xlab("CAP1 [15.1%]") +  # 
-  ylab("CAP2 [3.1%]") +  # 
+  theme_classic()+
+  theme(legend.position = "none")+
+  xlab("CAP1 [7.6%]") +  # 
+  ylab("CAP2 [3.7%]") +  # 
   scale_shape_manual(values=c(5,3,16))+ 
   geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
   geom_polygon(data=hull1,aes(x=CAP1,y=CAP2, fill=Community.x,colour = Community.x),alpha=.2)
@@ -171,13 +175,18 @@ hull2 <- site_scores2 %>%
   group_by(Community.x) %>%
   slice(chull(CAP1,CAP2))
 
+levels(site_scores2$Site) <- c("Soddie", "Saddle")
+colnames(site_scores2)[2] <- "Community"
+colnames(hull2)[2] <- "Community"
+
+#Kacey use this one
 plot2<-ggplot(site_scores2)+
   theme_classic()+#  theme(legend.position = "none")
-  xlab("CAP1 [5.7%]") +  # 
-  ylab("CAP2 [2.8%]") +  # 
+  xlab("CAP1 [4.9%]") +  # 
+  ylab("CAP2 [2.9%]") +  # 
   scale_shape_manual(values=c(5,3,16))+ 
-  geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
-  geom_polygon(data=hull2,aes(x=CAP1,y=CAP2, fill=Community.x,colour = Community.x),alpha=.2)
+  geom_point(aes(x=CAP1, y=CAP2,color=Community,shape=Site),size = 2)+
+  geom_polygon(data=hull2,aes(x=CAP1,y=CAP2, fill=Community,colour = Community),alpha=.2)
 
 #jaccard
 mynmdsALLj <- ordinate(datp, "CAP",distance(datp, method = "jaccard", binary = TRUE),formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
@@ -190,7 +199,7 @@ plot5 <- plot_ordination(datp, mynmdsALLj, type="samples", color="Site",axes=c(1
 
 # figure for comp and mdp using bray-curtis dissimilarity for beta diveristy
 #pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/ordinationcompmpdhulls.pdf",height = 3.5,width = 11)
-ord2 <- plot_grid(plot1, plot2, nrow = 1, labels=c("A. Composition","B. MPD"),label_fontface = "plain",hjust=c(-.5,-1.),vjust=1)
+ord2 <- plot_grid(plot1, plot2, nrow = 1, labels=c("A. Composition","B. MPD"),label_fontface = "plain",hjust=c(-.5,-1.),vjust=1,rel_widths = c(1,1.4))
 #dev.off()
 
 ```
@@ -380,7 +389,7 @@ div<-dat6%>%
 
 data_richness <- estimateR(div[,3:36]) 
 
-# calculate evenness index using vegan package
+# calculate evenness index using vegan package Pielou's measure of species evenness
 data_evenness <- diversity(div[,3:36]) / log(specnumber(div[,3:36]))
 
 # calculate Shannon index using vegan package
@@ -396,7 +405,7 @@ data_alphadiv = data_alphadiv %>%
   unite(Community_Site, c(,1:2), sep = "_", remove = FALSE)
 
 # remove the unnecessary data/vector
-rm(data_richness, data_evenness, data_shannon, data_simpson)
+#rm(data_richness, data_evenness, data_shannon, data_simpson)
 
 alpha1 <- ggplot(data_alphadiv, aes(x= Site, y=S.obs,color=Site)) +
   theme_classic()+

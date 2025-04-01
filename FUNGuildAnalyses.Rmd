@@ -152,11 +152,21 @@ pathmean<-dat7%>%
   summarise(mean=mean(pathotrophbroadprobablehptaxapercent),se=std.error(pathotrophbroadprobablehptaxapercent),count=n())
 
 funp8 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
-  labs(x = "",y="") +
+  ylim(0,85)+
+  labs(x = "",y="Pathotroph",tag="B") +
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1)
+
+#box plot with raw data
+funp9 <- ggplot(dat7,aes(x=Community.x,y=pathotrophbroadprobablehptaxapercent,color=Community.x,group=Community.x))+
+  geom_boxplot()+
+  geom_point()+
+  ylim(0,100)+
+  labs(x = "",y="Pathotroph",tag="B") +
+  theme_classic()+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
 
 ```
 
@@ -223,11 +233,21 @@ pathmean<-dat7%>%
   summarise(mean=mean(ericoidbroadprobablehptaxapercent),se=std.error(ericoidbroadprobablehptaxapercent),count=n())
 
 funer4 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
-  labs(x = "",y="") +
+  labs(x = "",y="Ericoid \n Mycorrhiza",tag="D") +
+  ylim(0,85)+
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1)
+
+#box plot with raw data
+funer5 <- ggplot(dat7,aes(x=Community.x,y=ericoidbroadprobablehptaxapercent,color=Community.x,group=Community.x))+
+  geom_boxplot()+
+  geom_point()+
+  labs(x = "",y="Ericoid \n Mycorrhiza",tag="D") +
+  ylim(0,100)+
+  theme_classic()+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
 
 ```
 # Symbiotroph
@@ -290,11 +310,21 @@ pathmean<-dat7%>%
   summarise(mean=mean(symbiotrophbroadprobablehptaxapercent),se=std.error(symbiotrophbroadprobablehptaxapercent),count=n())
 
 funsym4 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
-  labs(x = "",y="") +
+  labs(x = "",y="Symbiotroph",tag="A") +
+  ylim(0,85)+
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1)
+
+#box plot with raw data
+funsym5 <- ggplot(dat7,aes(x=Community.x,y=symbiotrophbroadprobablehptaxapercent,color=Community.x,group=Community.x))+
+  geom_boxplot()+
+  geom_point()+
+  labs(x = "",y="Symbiotroph",tag="A") +
+  ylim(0,100)+
+  theme_classic()+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
 
 ```
 # Saprotroph
@@ -360,11 +390,21 @@ pathmean<-dat7%>%
   summarise(mean=mean(saprotrophbroadprobablehptaxapercent),se=std.error(saprotrophbroadprobablehptaxapercent),count=n())
 
 funsap4 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
-  labs(x = "",y="") +
+  labs(x = "",y="Saprotroph",tag="C") +
+  ylim(0,85)+
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1)
+
+#box plot with raw data
+funsap5 <- ggplot(dat7,aes(x=Community.x,y=saprotrophbroadprobablehptaxapercent,color=Community.x,group=Community.x))+
+    geom_boxplot()+
+  geom_point()+
+  labs(x = "",y="Saprotroph",tag="C") +
+  ylim(0,100)+
+  theme_classic()+
+  theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
 
 ```
 # Plant Saprotroph
@@ -533,6 +573,20 @@ non2 <- (funp7|funp8)/(funp3|funp4)
 non3 <- (funsap3|funsap4)/(funpsap3|funpsap4)
 non4 <- (funer3|funer4)
 
+#trophic modes only
+trop <- (funsym4|funp8)/(funsap4|funer4)
+
+trop <- ggarrange(funsym4, funp8, funsap4,funer4, ncol = 2, nrow = 2)
+annotate_figure(trop, top = text_grob("Average Percentage in Probable/Highly Probable Taxa", 
+               color = "black",face = "bold", size = 14))
+ggsave("trop.png")
+
+
+#trophic mode box plot with raw data
+trop2 <- ggarrange(funsym5, funp9, funsap5,funer5, ncol = 2, nrow = 2)
+annotate_figure(trop2, top = text_grob("Average Percentage in Probable/Highly Probable Taxa", 
+               color = "black", face = "bold", size = 14))
+ggsave("trop2.png")
 
 ```
 
