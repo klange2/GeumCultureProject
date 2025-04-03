@@ -67,15 +67,16 @@ datp3<-prune_samples(sample_sums(datp2)>=1, datp2)
 
 ```{r}
 #bray curtis
-mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site))
-anova(mynmdsALLb,by="margin",permutations = how(nperm=9999))
+#mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
+#anova(mynmdsALLb,by="margin",permutations = how(nperm=9999))
 
-#interaction
-mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x*Site))
+mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site))
 anova(mynmdsALLb,by="margin",permutations = how(nperm=9999))
 
 #Getting variance explained
 m1<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Condition(PlantIndividual+Site)))
+summary(m1)
+m1<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Site+Condition(PlantIndividual+Community.x)))
 summary(m1)
 
 ```
@@ -107,16 +108,10 @@ hull1 <- site_scores1 %>%
 
 #kacey use this one
 plot1<-ggplot(site_scores1)+
-<<<<<<< HEAD
   theme_classic()+
   theme(legend.position = "none")+
   xlab("CAP1 [7.6%]") +  # 
   ylab("CAP2 [3.7%]") +  # 
-=======
-  theme_classic()+#  theme(legend.position = "none")
-  xlab("CAP1 [15.4%]") +  # 
-  ylab("CAP2 [3.6%]") +  # 
->>>>>>> 1f94eb38000bb55c52f7e610d6d1e19e817c37e4
   scale_shape_manual(values=c(5,3,16))+ 
   geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
   geom_polygon(data=hull1,aes(x=CAP1,y=CAP2, fill=Community.x,colour = Community.x),alpha=.2)
@@ -136,13 +131,12 @@ plot1<-ggplot(site_scores1)+
 
 ```{r}
 
+#MPD
+#mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
+#mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~HostPlant+Site))
 mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x+Site))
 anova(mynmdsALLm,by="margin",permutations = how(nperm=9999))
-
-#interactions
-mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x*Site))
-anova(mynmdsALLm,by="margin",permutations = how(nperm=9999))
-
+#anova(mynmdsALLm,by="margin",permutations = how(blocks=sample_data(datp)$Year,nperm=9999)) #adding permutations within year does not change the anova results
 
 #percent explained
 m1 <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x+Condition(PlantIndividual+Site)))
@@ -188,13 +182,8 @@ colnames(hull2)[2] <- "Community"
 #Kacey use this one
 plot2<-ggplot(site_scores2)+
   theme_classic()+#  theme(legend.position = "none")
-<<<<<<< HEAD
   xlab("CAP1 [4.9%]") +  # 
   ylab("CAP2 [2.9%]") +  # 
-=======
-  xlab("CAP1 [7.6%]") +  # 
-  ylab("CAP2 [3.6%]") +  # 
->>>>>>> 1f94eb38000bb55c52f7e610d6d1e19e817c37e4
   scale_shape_manual(values=c(5,3,16))+ 
   geom_point(aes(x=CAP1, y=CAP2,color=Community,shape=Site),size = 2)+
   geom_polygon(data=hull2,aes(x=CAP1,y=CAP2, fill=Community,colour = Community),alpha=.2)
@@ -398,21 +387,16 @@ div<-dat6%>%
   mutate(Community.x =  factor(Community.x, levels = c("SB", "MM", "DM", "FF"))) %>%
   arrange(Community.x)
 
-data_richness <- estimateR(div[,3:35]) 
+data_richness <- estimateR(div[,3:36]) 
 
-<<<<<<< HEAD
 # calculate evenness index using vegan package Pielou's measure of species evenness
 data_evenness <- diversity(div[,3:36]) / log(specnumber(div[,3:36]))
-=======
-# calculate evenness index using vegan package
-data_evenness <- diversity(div[,3:35]) / log(specnumber(div[,3:35]))
->>>>>>> 1f94eb38000bb55c52f7e610d6d1e19e817c37e4
 
 # calculate Shannon index using vegan package
-data_shannon <- diversity(div[,3:35], index = "shannon")
+data_shannon <- diversity(div[,3:36], index = "shannon")
 
 # calculate Shannon index using vegan package
-data_simpson <- diversity(div[,3:35], index = "simpson")
+data_simpson <- diversity(div[,3:36], index = "simpson")
 
 # combine all indices in one data table
 data_alphadiv <- cbind(div[,1:2], t(data_richness), data_shannon, data_simpson, data_evenness)
@@ -569,9 +553,14 @@ alphaall3 <- alphaall3 +
 
 ```{r}
 
-shan_com <- gls(data_shannon ~ Community*Site, data = data_alphadiv,na.action=na.omit)
-anova(shan_com,type="marginal")
+#no significnat effect of the sampling site Pr(>F)=0.127
+shan_site <- lm(data_shannon ~ Site, data = data_alphadiv,,na.action=na.omit)
+anova(shan_site)
 
+shan_com <- lm(data_shannon ~ Community, data = data_alphadiv,na.action=na.omit)
+anova(shan_com)
+
+# theres a significant difference in the plant community Pr(>F)=0.0495
 shan_com = aov(data_shannon ~ Community, data = data_alphadiv)
 summary(shan_com)
 
@@ -579,16 +568,25 @@ summary(shan_com)
 hsd_test <- TukeyHSD(shan_com) # require the agricolae package  
 hsd_res <- HSD.test(shan_com, "Community", group=T)$groups  
 show(hsd_res)
+#DM and FF are significantly different from eachother, MM and SB are the same, DM is not signifcantly different from MM and SB, FF is not significantly different from MM and SB
 
+options(contrasts=c("contr.helmert","contr.poly"))
 
-shan_comsite <- gls(data_shannon ~ Community_Site, data = data_alphadiv,na.action=na.omit) 
-anova(shan_comsite,type="marginal")
+shan_sitecom <- summary(aov(data_shannon ~ Site * Community, data = data_alphadiv))
+#anova(shan_sitecom)
+# there is no significant difference in the site Pr(>F)=0.1050
+# would the community be considered significant? Pr(>F)=0.0511
+# there is no significant difference in the interaction Pr(>F)=0.3453
+
+shan_comsite <- lm(data_shannon ~ Community_Site, data = data_alphadiv,na.action=na.omit) 
+anova(shan_comsite)
 
 shan_comsite <- aov(data_shannon ~ Community_Site, data = data_alphadiv) 
 summary(shan_comsite)
 hsd_test <- TukeyHSD(shan_comsite)
 hsd_res <- HSD.test(shan_comsite, "Community_Site", group = TRUE)$groups  
 hsd_res
+# DM_P and FF_Q are significantly different
 
 ```
 
@@ -596,21 +594,45 @@ hsd_res
 
 ```{r}
 
-chao <- gls(S.chao1 ~ Community*Site, data = data_alphadiv,na.action=na.omit)
-anova(chao,type="marginal")
+chao_site <- lm(S.chao1 ~ Site, data = data_alphadiv,na.action=na.omit)
+anova(chao_site)
 
-aov_test = aov(S.chao1 ~ Site, data = data_alphadiv)
-summary(aov_test)
+chao_com <- lm(S.chao1 ~ Community, data = data_alphadiv,na.action=na.omit)
+anova(chao_com)
+
+#no significnat effect of the sampling site Pr(>F)=0.0569??
+aov_test= (aov(S.chao1 ~ Site, data = data_alphadiv))
+summary (aov_test)
 
 # post-hoc test
 hsd_test <- TukeyHSD(aov_test) # require the agricolae package  
 hsd_res <- HSD.test(aov_test, "Site", group=T)$groups  
 show(hsd_res)
+#theres no significant difference between sites
+
+# theres no significant difference in the plant community Pr(>F)=0.148
+aov_test = aov(S.chao1 ~ Community, data = data_alphadiv)
+summary(aov_test)
+
+# post-hoc test
+hsd_test <- TukeyHSD(aov_test) # require the agricolae package  
+hsd_res <- HSD.test(aov_test, "Community", group=T)$groups  
+show(hsd_res)
+#theres no significant difference between any plant communities
+#why is DM not different?
+
+summary(aov(S.chao1 ~ Site * Community, data = data_alphadiv))
+# there is no significant difference in the site? Pr(>F)=0.0542
+# there is no significant difference in the community Pr(>F)=0.1677
+# there is no significant difference in the interaction Pr(>F)=0.5625
 
 aov_test <- aov(S.chao1 ~ Community_Site, data = data_alphadiv) 
 hsd_test <- TukeyHSD(aov_test)
 hsd_res <- HSD.test(aov_test, "Community_Site", group = TRUE)$groups  
 hsd_res
+# theres no significant difference between any communiy/sites
+
+summary(aov(S.chao1 ~ Community * Site, data = data_alphadiv))
 
 ```
 
@@ -618,9 +640,22 @@ hsd_res
 
 ```{r}
 
-sim_com <- gls(data_simpson ~ Community*Site, data = data_alphadiv,na.action=na.omit)
+sim_site <- lm(data_simpson ~ Site, data = data_alphadiv,,na.action=na.omit)
+anova(sim_site)
+
+sim_com <- lm(data_simpson ~ Community, data = data_alphadiv,na.action=na.omit)
 anova(sim_com)
 
+#no significant effect of the sampling site Pr(>F)=0.287
+aov_test=(aov(data_simpson ~ Site, data = data_alphadiv))
+summary(aov_test)
+
+# post-hoc test
+hsd_test <- TukeyHSD(aov_test) # require the agricolae package  
+hsd_res <- HSD.test(aov_test, "Site", group=T)$groups  
+show(hsd_res)
+
+# theres no significant difference in the plant community? Pr(>F)=0.0502
 aov_test = aov(data_simpson ~ Community, data = data_alphadiv)
 summary(aov_test)
 
@@ -628,11 +663,23 @@ summary(aov_test)
 hsd_test <- TukeyHSD(aov_test) # require the agricolae package  
 hsd_res <- HSD.test(aov_test, "Community", group=T)$groups  
 show(hsd_res)
+#DM and FF are significantly different from eachother, MM and SB are the same, DM is not signifcantly different from MM and SB, FF is not significantly different from MM and SB
+
+summary(aov(data_simpson ~ Site * Community, data = data_alphadiv))
+# there is no significant difference in the site Pr(>F)=0.2557
+# would the community be considered significant? Pr(>F)=0.0531
+# there is no significant difference in the interaction Pr(>F)=0.3117
+
+sim_comsite <- lm(data_simpson ~ Community_Site, data = data_alphadiv,na.action=na.omit)
+anova(sim_comsite)
+
+summary(aov(data_simpson ~ Community * Site, data = data_alphadiv))
 
 aov_test <- aov(data_simpson ~ Community_Site, data = data_alphadiv) 
 hsd_test <- TukeyHSD(aov_test)
 hsd_res <- HSD.test(aov_test, "Community_Site", group = TRUE)$groups  
 hsd_res
+# DM_P and FF_Q are significantly different
 
 ```
 # Stats table
