@@ -34,7 +34,7 @@ library(forcats)
 #BiocManager::install("sangeranalyseR")
 #install.packages("devtools")
 #BiocManager::install("GenomeInfoDbData")
-BiocManager::install("GenomeInfoDb")
+#BiocManager::install("GenomeInfoDb", force = TRUE)
 
 library(devtools)
 
@@ -43,7 +43,7 @@ library(devtools)
 
 ## Install the development version
 #install_github("roblanf/sangeranalyseR", ref = "develop")
-#install.packages("GenomeInfoDbData")
+#install.packages("GenomeInfoDb")
 library(sangeranalyseR) #go to GitHub for TMZ file or
 #install(BiocManager)
 library(sangerseqR)
@@ -73,6 +73,7 @@ library(nlme)
 #library(FUNGuildR)
 
 #BiocManager::install("dada2")
+#devtools::install_github("benjjneb/dada2")
 library(dada2)
 library(ggmap)
 
