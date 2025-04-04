@@ -2388,7 +2388,11 @@
     },
     "renv": {
       "Package": "renv",
+<<<<<<< HEAD
       "Version": "1.1.4",
+=======
+      "Version": "1.0.11",
+>>>>>>> 2e7a4c00796ebfcbf30657ece1ab69926b4ad69a
       "Source": "Repository"
     },
     "reprex": {
