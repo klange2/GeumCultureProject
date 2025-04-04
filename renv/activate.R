@@ -2,11 +2,7 @@
 local({
 
   # the requested version of renv
-<<<<<<< HEAD
   version <- "1.1.4"
-=======
-  version <- "1.0.11"
->>>>>>> 2e7a4c00796ebfcbf30657ece1ab69926b4ad69a
   attr(version, "sha") <- NULL
 
   # the project directory
@@ -139,20 +135,12 @@ local({
   
     # R help links
     pattern <- "`\\?(renv::(?:[^`])+)`"
-<<<<<<< HEAD
     replacement <- "`\033]8;;x-r-help:\\1\a?\\1\033]8;;\a`"
-=======
-    replacement <- "`\033]8;;ide:help:\\1\a?\\1\033]8;;\a`"
->>>>>>> 2e7a4c00796ebfcbf30657ece1ab69926b4ad69a
     text <- gsub(pattern, replacement, text, perl = TRUE)
   
     # runnable code
     pattern <- "`(renv::(?:[^`])+)`"
-<<<<<<< HEAD
     replacement <- "`\033]8;;x-r-run:\\1\a\\1\033]8;;\a`"
-=======
-    replacement <- "`\033]8;;ide:run:\\1\a\\1\033]8;;\a`"
->>>>>>> 2e7a4c00796ebfcbf30657ece1ab69926b4ad69a
     text <- gsub(pattern, replacement, text, perl = TRUE)
   
     # return ansified text
@@ -215,12 +203,6 @@ local({
     indent <- regexpr("[^[:space:]]", lines)
     common <- min(setdiff(indent, -1L)) - leave
     text <- paste(substring(lines, common), collapse = "\n")
-<<<<<<< HEAD
-=======
-  
-    # substitute in ANSI links for executable renv code
-    ansify(text)
->>>>>>> 2e7a4c00796ebfcbf30657ece1ab69926b4ad69a
   
     # substitute in ANSI links for executable renv code
     ansify(text)
@@ -577,12 +559,9 @@ local({
   
     # prepare download options
     token <- renv_bootstrap_github_token()
-<<<<<<< HEAD
     if (is.null(token))
       token <- ""
   
-=======
->>>>>>> 2e7a4c00796ebfcbf30657ece1ab69926b4ad69a
     if (nzchar(Sys.which("curl")) && nzchar(token)) {
       fmt <- "--location --fail --header \"Authorization: token %s\""
       extra <- sprintf(fmt, token)

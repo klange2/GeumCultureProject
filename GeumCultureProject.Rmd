@@ -13,7 +13,7 @@ output: html_document
 followed instructions: https://github.com/bioc/sangeranalyseR
 
 ``` {r}
-#library(ggplot2)
+library(ggplot2)
 library(readxl)
 library(tidyverse)
 library(googlesheets4)
@@ -33,7 +33,8 @@ library(forcats)
 
 #BiocManager::install("sangeranalyseR")
 #install.packages("devtools")
-
+#BiocManager::install("GenomeInfoDbData")
+BiocManager::install("GenomeInfoDb")
 
 library(devtools)
 
