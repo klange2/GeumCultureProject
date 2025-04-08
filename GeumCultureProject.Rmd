@@ -169,16 +169,19 @@ Kacey:
 -RAxML with de novo tree construction
 
 
-*use result files from run QIZ4LVYB. This is good one.*
+*use result files from run QYR3BIB5. This is good one.*
 
 T-BAS data:
 OTU is the otu name that was input for the isolate name in T-BAS, every isolate has a unique OTU.
 Query.sequence is also unique to each isolate. It is the sample number (1-250).
 
 ```{r}
-geumroot <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveQIZ4LVYB_/assignments_report_addvoucherQIZ4LVYB.csv")
+#geumroot <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveQIZ4LVYB_/assignments_report_addvoucherQIZ4LVYB.csv")
 
-#query sequence 154 and 54 were OTU11
+#add_voucher
+geumroot <- read_sheet("https://docs.google.com/spreadsheets/d/1777xpjyf3xTVaZhjptNv1k95fXLUY7W2tBdRKxo1YmU/edit?gid=2040713195#gid=2040713195", sheet = "assignments_report_addvoucherQYR3BIB5", na='NULL')
+
+#query sequence 154 and 54 were OTU10
 geumroot <- geumroot[-c(44,155),]
 colnames(geumroot)[16]<- "otu" 
 colnames(geumroot)[1]<- "Query.sequence"
@@ -188,7 +191,7 @@ geumroot$Query.sequence <- sprintf("%03d", geumroot$Query.sequence) #changing th
 
 ## Phylogenetic Tree
 
-TBAS tree with all sequences -> QIZ4LVYB.nwk
+TBAS tree with all sequences -> QYR3BIB5.nwk
 TBAS tree after selecting all query sequences and pruning the tree -> CM5WSVTT.nwk *this is what I want*
 
 Change tip labels to oTU numbers 
@@ -196,7 +199,8 @@ Change tip labels to oTU numbers
 ```{r}
 #newtree <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archive3HXRGT5G_/3HXRGT5G.nwk")
 
-trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveCM5WSVTT_/CM5WSVTT.nwk.txt")
+trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveFQ3XFOLV_/FQ3XFOLV.nwk")
+
 
 # tree with species names 
 #trimmednwk$tip.label <- geumroot[[12]][match(trimmednwk$tip.label, geumroot[[1]])]
@@ -210,7 +214,7 @@ trimmednwk$tip.label <- geumroot[[16]][match(trimmednwk$tip.label, geumroot[[1]]
 
 plot(trimmednwk)
 
-cleanedtree <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveCM5WSVTT_/CM5WSVTT.nwk.txt")
+cleanedtree <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveFQ3XFOLV_/FQ3XFOLV.nwk")
 
 #tip 154 was a weird sample and was throiwng mpd data off so it is removed
 dropped_tip_154 <- drop.tip(cleanedtree, tip= c('154'), trim.internal = TRUE, subtree = FALSE,
