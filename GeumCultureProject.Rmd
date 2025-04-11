@@ -374,7 +374,6 @@ Make sure to get the most recently updated reference file from the UNITE databas
 https://doi.plutof.ut.ee/doi/10.15156/BIO/2959333
 At the bottom under downloads
 
-taxaonly2 <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/taxaonly.csv")
 
 ```{r}
 
@@ -382,7 +381,8 @@ unite.ref <- "C:/Users/Kacey/Documents/Tulane/Lab/Culture/UNITE/sh_general_relea
 
 
 #I got this data from assignments_report_nodupsM76GMYAB
-myotus<-read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveQYR3BIB5_/assignments_report_nodupsQYR3BIB5.csv",header=T);rownames(myotus)<-myotus$abundance
+myotus<-read_sheet("https://docs.google.com/spreadsheets/d/1kSPGI5pIbasJxZHLeBKt6zI-YLhCI9mGqSGN1W0xyFY/edit?gid=1207019924#gid=1207019924",sheet = "assignments_report_nodupsQYR3BIB5")
+colnames(myotus)[1]<- "Query.sequence"
 
 #throwing out query sequence 154 and 54 (OTU11)
 #myotus <- myotus[-c(2),]
@@ -390,7 +390,7 @@ myotus$Query.sequence <- sprintf("%03d", myotus$Query.sequence)
 
 myotus2 <- myotus[,c(52,47)]
 names(myotus2)[names(myotus2) == 'ITS'] <- 'sequence'
-names(myotus2)[names(myotus2) == 'otu.1'] <- 'abundance'
+names(myotus2)[names(myotus2) == 'otu...47'] <- 'abundance'
 
 #delete rows with no sequence
 myotus2 <- myotus2[!(is.na(myotus2$sequence) | myotus2$sequence==""), ]
@@ -407,6 +407,8 @@ sort(unique(genusspecies$genusspecies))
 sort(unique(taxaonly$Phylum))
 
 taxaonly%>%group_by(Phylum)%>%tally()
+
+#writeData(taxaonly, file = "taxaonly")
 ```
 
 ## FunGuild
