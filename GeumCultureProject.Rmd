@@ -199,10 +199,10 @@ Change tip labels to oTU numbers
 ```{r}
 #newtree <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archive3HXRGT5G_/3HXRGT5G.nwk")
 
-trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveFQ3XFOLV_/FQ3XFOLV.nwk")
+#trimmednwk <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveFQ3XFOLV_/FQ3XFOLV.nwk")
 
-ape::write.tree(trimmednwk, file = 'trimmednwk.txt')
-
+#ape::write.tree(trimmednwk, file = 'trimmednwk.txt')
+trimmednwk <- read.tree('trimmednwk.txt')
 
 # tree with species names 
 #trimmednwk$tip.label <- geumroot[[12]][match(trimmednwk$tip.label, geumroot[[1]])]
