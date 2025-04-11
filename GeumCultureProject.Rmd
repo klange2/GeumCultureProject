@@ -185,6 +185,8 @@ geumroot <- read_sheet("https://docs.google.com/spreadsheets/d/1777xpjyf3xTVaZhj
 geumroot <- geumroot[-c(44,155),]
 colnames(geumroot)[16]<- "otu" 
 colnames(geumroot)[1]<- "Query.sequence"
+colnames(geumroot)[12] <- "Taxon.assignment"
+colnames(geumroot)[54] <- "Trophic.Mode"
 geumroot$Query.sequence <- sprintf("%03d", geumroot$Query.sequence) #changing the numbers to 3 characters to match the contigs
 
 ```
@@ -216,17 +218,17 @@ trimmednwk$tip.label <- geumroot[[16]][match(trimmednwk$tip.label, geumroot[[1]]
 
 plot(trimmednwk)
 
-cleanedtree <-read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/T-BAS_Results/tbas21_archiveFQ3XFOLV_/FQ3XFOLV.nwk")
+cleanedtree <-read.tree('trimmednwk.txt')
 
 #tip 154 was a weird sample and was throiwng mpd data off so it is removed
 dropped_tip_154 <- drop.tip(cleanedtree, tip= c('154'), trim.internal = TRUE, subtree = FALSE,
                           root.edge = 0, rooted = is.rooted(cleanedtree), collapse.singles = TRUE,
                           interactive = FALSE)
 
-write.tree(dropped_tip_154, file = "C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk", append = FALSE,
+ape::write.tree(dropped_tip_154, file = "cleanedtree_V2.nwk", append = FALSE,
            digits = 5, tree.names = FALSE)
 
-cleanedtree_v2 <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk")
+cleanedtree_v2 <- read.tree("cleanedtree_V2.nwk")
 
 cleanedtree_v2$tip.label <- geumroot[[16]][match(cleanedtree_v2$tip.label, geumroot[[1]])]
 
@@ -256,8 +258,8 @@ culture2$Query.sequence <- sprintf("%03d", culture2$Query.sequence)
 
 geumroot2<-geumroot%>%
   unite(CultureID,otu,Taxon.assignment,remove=F)%>%
-  dplyr::select(Query.sequence,CultureID,Community_Type_QIZ4LVYB,Site_QIZ4LVYB,Latitude_QIZ4LVYB,Longitude_QIZ4LVYB,otu,Trophic.Mode,Guild,Taxon.assignment,GenusSpecies)%>%
-  rename(Community=Community_Type_QIZ4LVYB,Site=Site_QIZ4LVYB,Lat=Latitude_QIZ4LVYB,Long=Longitude_QIZ4LVYB)%>%
+  dplyr::select(Query.sequence,CultureID,Community_Type_QYR3BIB5,Site_QYR3BIB5,Latitude_QYR3BIB5,Longitude_QYR3BIB5,otu,Trophic.Mode,Guild,Taxon.assignment,GenusSpecies)%>%
+  rename(Community=Community_Type_QYR3BIB5,Site=Site_QYR3BIB5,Lat=Latitude_QYR3BIB5,Long=Longitude_QYR3BIB5)%>%
 mutate(Community = factor(Community, levels = c("SB", "MM", "DM", "FF")),Site = factor(Site, levels = c("P", "Q")))
 head(geumroot2)
 
@@ -280,7 +282,7 @@ dat3<-dat2%>%
   ungroup()%>%
   unite(CommunitySitePL,Community.x,Site,PlantIndividual,remove=F)%>%
   spread(otu,abundance,fill=0)
-dat.comm<-data.frame(dat3[,5:37])
+dat.comm<-data.frame(dat3[,6:36])
 row.names(dat.comm)<-dat3$CommunitySitePL
 
 ```
@@ -289,15 +291,15 @@ row.names(dat.comm)<-dat3$CommunitySitePL
 
 ```{r}
 
-PD<-pd(dat.comm,trimmednwk)
+PD<-pd(dat.comm,cleanedtree_v2)
 
-dat4<-data.frame(dat3[,1:4],PD,dat3[,5:37])
+dat4<-data.frame(dat3[,1:4],PD,dat3[,6:36])
 ```
 
 ## MPD by CommunitySitePL
 
 ```{r}
-phydist <- cophenetic(trimmednwk)
+phydist <- cophenetic(cleanedtree_v2)
 ses.mpd.result.notweighted <- ses.mpd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=FALSE, runs=999) #takes 5 min with 999
 ses.mpd.result.notweighted
 ses.mpd.result.notweighted$CommunitySitePL<-rownames(ses.mpd.result.notweighted)
@@ -325,7 +327,6 @@ dat5<-dat4%>%
 ## MNTD
 
 ```{r}
-phydist <- cophenetic(trimmednwk)
 ses.mntd.result.notweighted <- ses.mntd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=FALSE, runs=999) #takes 5 min with 999
 ses.mntd.result.notweighted
 ses.mntd.result.notweighted$CommunitySitePL<-rownames(ses.mntd.result.notweighted)
@@ -347,7 +348,7 @@ dat5<-dat4%>%
   full_join(ses.mpd.result.weighted1)
   
   
-dat6<-data.frame(dat5[,1:6],dat5[,40:43],dat5[,7:39])
+dat6<-data.frame(dat5[,1:6],dat5[,38:41],dat5[,7:37])
 head(dat6)
 
 ```
@@ -355,16 +356,16 @@ head(dat6)
 ## Phyloseq Object
 
 ```{r}
-otus<-dat6[,11:43]
+otus<-dat6[,11:41]
 otus2<-t(otus)
 sampleotus<-dat6[,c(1:10)]
 taxonomyotus<-as.matrix(data.frame(Kingdom=row.names(otus2),Phylum=row.names(otus2),Class=row.names(otus2),Order=row.names(otus2),Class=row.names(otus2),Family=row.names(otus2),Genus=row.names(otus2),Species=row.names(otus2)))
 rownames(taxonomyotus)<-row.names(otus2)
 
-datp <- merge_phyloseq(otu_table(otus2,taxa_are_rows = T), tax_table(taxonomyotus), sample_data(sampleotus),trimmednwk)
+datp <- merge_phyloseq(otu_table(otus2,taxa_are_rows = T), tax_table(taxonomyotus), sample_data(sampleotus),cleanedtree_v2)
 
 #calculate unifrac distances
-unifracp<-unifrac(otus,trimmednwk)
+unifracp<-unifrac(otus,cleanedtree_v2)
 ```
 
 # Testing Blasting to UNITE
