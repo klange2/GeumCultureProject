@@ -377,8 +377,7 @@ At the bottom under downloads
 
 ```{r}
 
-#unite.ref <- "C:/Users/Kacey/Documents/Tulane/Lab/Culture/UNITE/sh_general_release_dynamic_s_04.04.2024.fasta"
-save(unite.ref, file = 'unite.ref.fasta')
+unite.ref <- ("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/FASTAS/sh_general_release_dynamic_s_04.04.2024.fasta.txt")
 
 
 #I got this data from assignments_report_nodupsM76GMYAB
@@ -398,7 +397,7 @@ myotus2 <- myotus2[!(is.na(myotus2$sequence) | myotus2$sequence==""), ]
 
 taxa<-assignTaxonomy(myotus2, unite.ref, multithread = TRUE, minBoot=70, tryRC = TRUE,outputBootstraps=T) #was minBoot=70
 taxaonly<-data.frame(taxa$tax);rownames(taxaonly)<-1:dim(taxa$tax)[1]
-taxaboot<-data.frame(taxa$boot);rownames(taxaboot)<-1:dim(taxa$tax)[1]
+taxaboot<-data.frame(taxa$boot);rownames(taxaboot)<-1:dim(taxa$tax)[1] 
 taxaonly
 taxaboot
 rownames(taxaonly)<-rownames(myotus)
@@ -421,12 +420,16 @@ using FUNGuildR
 #temp3 <- funguild_query("Buergenerula*", "taxon", db = fung)
 
 #Doing it in terminal - use this
-taxaonly2<-taxaonly
-taxaonly2$taxonomy<-paste(taxaonly2$Kingdom,taxaonly2$Phylum,taxaonly2$Class,taxaonly2$Order,taxaonly2$Family,taxaonly2$Genus,taxaonly2$Species,sep=";")
+#taxaonly2<-taxaonly
+#taxaonly2$taxonomy<-paste(taxaonly2$Kingdom,taxaonly2$Phylum,taxaonly2$Class,taxaonly2$Order,taxaonly2$Family,taxaonly2$Genus,taxaonly2$Species,sep=";")
 
-write.csv(taxaonly2,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/taxaonly.csv")
+#write.csv(taxaonly2,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/taxaonly.csv")
 
-taxaonly2 <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/taxaonly.csv")
+#save(taxaonly2, file = "taxaonly2.Rda")
+
+load("taxaonly2.Rda")
+
+#taxaonly2 <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/taxaonly.csv")
 
 #the data frame that goes into the funguildR has to have a column named "Taxonomy" (has to be uppercase) and include your otu numbers too
 taxaonly3<-data.frame(myotus2[,2],taxaonly2[,2:9])
@@ -434,7 +437,11 @@ colnames(taxaonly3)[1] <- "OTU"
 colnames(taxaonly3)[9] <- "Taxonomy"
 #taxaonly3$OTU <- stringr::str_replace(taxaonly3$OTU, '\\OTU', '')
 
-guilds <- funguild_assign(taxaonly3)
+#guilds <- funguild_assign(taxaonly3)
+
+#save(guilds, file = "guilds.Rda")
+
+load("guilds.Rda")
 
 guilds%>%filter(trophicMode==("Pathotroph"))
 guilds%>%filter(trophicMode==("Symbiotroph"))
@@ -560,7 +567,11 @@ totalabundance)
 dat7<-dat6%>%
   full_join(temp2)
 
-write.csv(dat7,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/GeumMastersheet.csv")
+#write.csv(dat7,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/GeumMastersheet.csv")
+
+#save(dat7, file = "dat7.Rda")
+
+load("dat7.Rda")
 
 ```
 
