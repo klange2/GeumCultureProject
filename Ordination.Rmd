@@ -391,16 +391,16 @@ div<-dat6%>%
   mutate(Community.x =  factor(Community.x, levels = c("SB", "MM", "DM", "FF"))) %>%
   arrange(Community.x)
 
-data_richness <- estimateR(div[,3:36]) 
+data_richness <- estimateR(div[,3:33]) 
 
 # calculate evenness index using vegan package Pielou's measure of species evenness
-data_evenness <- diversity(div[,3:36]) / log(specnumber(div[,3:36]))
+data_evenness <- diversity(div[,3:33]) / log(specnumber(div[,3:33]))
 
 # calculate Shannon index using vegan package
-data_shannon <- diversity(div[,3:36], index = "shannon")
+data_shannon <- diversity(div[,3:33], index = "shannon")
 
 # calculate Shannon index using vegan package
-data_simpson <- diversity(div[,3:36], index = "simpson")
+data_simpson <- diversity(div[,3:33], index = "simpson")
 
 # combine all indices in one data table
 data_alphadiv <- cbind(div[,1:2], t(data_richness), data_shannon, data_simpson, data_evenness)

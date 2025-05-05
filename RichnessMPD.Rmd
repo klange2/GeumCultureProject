@@ -276,6 +276,9 @@ shan<-data_alphadiv%>%
 
 levels(shan$Site) <- c("Soddie", "Saddle")
 
+# calculate Shannon index using vegan package
+data_shannon <- diversity(div[,3:33], index = "shannon")
+
 #box plot with raw data
 shann <- ggplot(shan,aes(x=Community,y=data_shannon,color=Community,group=Community))+
   geom_boxplot()+
@@ -433,7 +436,7 @@ mpd <- ggplot(mpdmean,aes(x=Community.x,y=mean,color=Community.x,group=Community
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) +
   facet_wrap(vars(Site),strip.position = "bottom")
-dev.off()
+#dev.off()
 
 #comparing mean pairwise distance in sites by descending moisture
 mpd2 <- ggplot(mpdmean,aes(x=Site,y=mean,color=Community.x,group=Community.x))+
