@@ -41,7 +41,10 @@ datp@sam_data[["Community.x"]] <-  fct_relevel(datp@sam_data[["Community.x"]],"S
 MPDdist<-comdist(data.frame(t(otu_table(datp))), cophenetic(phy_tree(datp)), abundance.weighted=F)
 MPDdistweighted<-comdist(data.frame(t(otu_table(datp))), cophenetic(phy_tree(datp)), abundance.weighted=T)
 
-cleanedtree_v2 <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk")
+#cleanedtree_v2 <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk")
+
+cleanedtree_v2 <- read.tree("cleanedtree_V2.nwk")
+
 cleanedtree_v2$tip.label <- geumroot[[16]][match(cleanedtree_v2$tip.label, geumroot[[1]])]
 
 #unifracp<-unifrac(otus,tree) #doesnt work with subsetting b/c sample names are not the same
@@ -70,6 +73,7 @@ datp3<-prune_samples(sample_sums(datp2)>=1, datp2)
 #mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
 #anova(mynmdsALLb,by="margin",permutations = how(nperm=9999))
 
+library("phyloseq")
 mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site))
 anova(mynmdsALLb,by="margin",permutations = how(nperm=9999))
 
@@ -110,8 +114,8 @@ hull1 <- site_scores1 %>%
 plot1<-ggplot(site_scores1)+
   theme_classic()+
   theme(legend.position = "none")+
-  xlab("CAP1 [7.6%]") +  # 
-  ylab("CAP2 [3.7%]") +  # 
+  xlab("CAP1 [7.7%]") +  # 
+  ylab("CAP2 [3.6%]") +  # 
   scale_shape_manual(values=c(5,3,16))+ 
   geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
   geom_polygon(data=hull1,aes(x=CAP1,y=CAP2, fill=Community.x,colour = Community.x),alpha=.2)
@@ -182,8 +186,8 @@ colnames(hull2)[2] <- "Community"
 #Kacey use this one
 plot2<-ggplot(site_scores2)+
   theme_classic()+#  theme(legend.position = "none")
-  xlab("CAP1 [4.9%]") +  # 
-  ylab("CAP2 [2.9%]") +  # 
+  xlab("CAP1 [5.8%]") +  # 
+  ylab("CAP2 [3.6%]") +  # 
   scale_shape_manual(values=c(5,3,16))+ 
   geom_point(aes(x=CAP1, y=CAP2,color=Community,shape=Site),size = 2)+
   geom_polygon(data=hull2,aes(x=CAP1,y=CAP2, fill=Community,colour = Community),alpha=.2)

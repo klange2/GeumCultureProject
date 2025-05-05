@@ -7,6 +7,8 @@
 library(plotrix)
 library(patchwork)
 library(agricolae)
+library(egg)
+library(ggpubr)
 
 ```
 # ANOVA Helmert
