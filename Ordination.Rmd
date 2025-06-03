@@ -75,7 +75,7 @@ datp3<-prune_samples(sample_sums(datp2)>=1, datp2)
 
 library("phyloseq")
 mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site))
-anova(mynmdsALLb,by="margin",permutations = how(nperm=9999))
+anova(mynmdsALLb,by="margin")
 
 #Getting variance explained
 m1<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Condition(PlantIndividual+Site)))
@@ -139,7 +139,7 @@ plot1<-ggplot(site_scores1)+
 #mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
 #mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~HostPlant+Site))
 mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x+Site))
-anova(mynmdsALLm,by="margin",permutations = how(nperm=9999))
+anova(mynmdsALLm,by="margin")
 #anova(mynmdsALLm,by="margin",permutations = how(blocks=sample_data(datp)$Year,nperm=9999)) #adding permutations within year does not change the anova results
 
 #percent explained
