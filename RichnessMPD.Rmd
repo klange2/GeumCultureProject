@@ -520,6 +520,32 @@ hsd_mpds <- TukeyHSD(tuk_mpds) # require the agricolae package
 hsd_mpds2 <- HSD.test(tuk_mpds, "Site", group=T)$groups  
 show(hsd_mpds2)
 
+# t-test of soddie
+psb_dat6 <- dat6[dat6$Site == "P" & dat6$Community.x == "SB", ]
+t.test(psb_dat6$mpd.obs.z.weighted, mu = 0)
+
+pmm_dat6 <- dat6[dat6$Site == "P" & dat6$Community.x == "MM", ]
+t.test(pmm_dat6$mpd.obs.z.weighted, mu = 0)
+
+pdm_dat6 <- dat6[dat6$Site == "P" & dat6$Community.x == "DM", ]
+t.test(pdm_dat6$mpd.obs.z.weighted, mu = 0)
+
+pff_dat6 <- dat6[dat6$Site == "P" & dat6$Community.x == "FF", ]
+t.test(pff_dat6$mpd.obs.z.weighted, mu = 0)
+
+#t-test of saddle
+qsb_dat6 <- dat6[dat6$Site == "Q" & dat6$Community.x == "SB", ]
+t.test(qsb_dat6$mpd.obs.z.weighted, mu = 0)
+
+qmm_dat6 <- dat6[dat6$Site == "Q" & dat6$Community.x == "MM", ]
+t.test(qmm_dat6$mpd.obs.z.weighted, mu = 0)
+
+qdm_dat6 <- dat6[dat6$Site == "Q" & dat6$Community.x == "DM", ]
+t.test(qdm_dat6$mpd.obs.z.weighted, mu = 0)
+
+qff_dat6 <- dat6[dat6$Site == "Q" & dat6$Community.x == "FF", ]
+t.test(qff_dat6$mpd.obs.z.weighted, mu = 0)
+
 ```
 
 # Plot for mdp and richness together
@@ -628,6 +654,32 @@ summary(tuk_mntds)
 hsd_mntds <- TukeyHSD(tuk_mntds) # require the agricolae package  
 hsd_mntds2 <- HSD.test(tuk_mntds, "Site", group=T)$groups  
 show(hsd_mntds2)
+
+# t-test of soddie
+psb_dat6 <- dat6[dat6$Site == "P" & dat6$Community.x == "SB", ]
+t.test(psb_dat6$mntd.obs.z.weighted, mu = 0)
+
+pmm_dat6 <- dat6[dat6$Site == "P" & dat6$Community.x == "MM", ]
+t.test(pmm_dat6$mntd.obs.z.weighted, mu = 0)
+
+pdm_dat6 <- dat6[dat6$Site == "P" & dat6$Community.x == "DM", ]
+t.test(pdm_dat6$mntd.obs.z.weighted, mu = 0)
+
+pff_dat6 <- dat6[dat6$Site == "P" & dat6$Community.x == "FF", ]
+t.test(pff_dat6$mntd.obs.z.weighted, mu = 0)
+
+#t-test of saddle
+qsb_dat6 <- dat6[dat6$Site == "Q" & dat6$Community.x == "SB", ]
+t.test(qsb_dat6$mntd.obs.z.weighted, mu = 0)
+
+qmm_dat6 <- dat6[dat6$Site == "Q" & dat6$Community.x == "MM", ]
+t.test(qmm_dat6$mntd.obs.z.weighted, mu = 0)
+
+qdm_dat6 <- dat6[dat6$Site == "Q" & dat6$Community.x == "DM", ]
+t.test(qdm_dat6$mntd.obs.z.weighted, mu = 0)
+
+qff_dat6 <- dat6[dat6$Site == "Q" & dat6$Community.x == "FF", ]
+t.test(qff_dat6$mntd.obs.z.weighted, mu = 0)
 
 ```
 
