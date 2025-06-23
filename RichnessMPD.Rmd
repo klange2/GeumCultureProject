@@ -162,7 +162,7 @@ gls <- fit linear model using generalized least squares
 lme <- linear mixed-effects models
 
 ``` {r}
-m1<-gls(SR~Community.x+Site,data=dat6,na.action=na.omit)
+m1<-lme(SR~Community.x*Site,random=~1|PlantIndividual,data=dat6,na.action=na.omit)
 anova(m1,type="marginal")
 #statistically different
 
@@ -232,7 +232,7 @@ ev <- ggplot(even,aes(x=Community,y=data_evenness,color=Community,group=Communit
 ##Stats
 
 ``` {r}
-m1<-gls(data_evenness~Community+Site,data=data_alphadiv,na.action=na.omit)
+m1<-lme(data_evenness~Community*Site,random=~1|Community_Site,data=data_alphadiv,na.action=na.omit)
 anova(m1,type="marginal")
 #statistically different
 
@@ -293,7 +293,7 @@ shann <- ggplot(shan,aes(x=Community,y=data_shannon,color=Community,group=Commun
 
 ##Stats
 ``` {r}
-m1<-gls(data_shannon~Community+Site,data=data_alphadiv,na.action=na.omit)
+m1<-lme(data_shannon~Community*Site,random=~1|Community_Site,data=data_alphadiv,na.action=na.omit)
 anova(m1,type="marginal")
 #statistically different
 
@@ -492,10 +492,10 @@ options(contrasts=c("contr.helmert","contr.poly"))
 # m2<-gls(mpd.obs.z.weighted~HostPlant*Site,data=phragspartina,na.action=na.omit)
 # anova(m2,type="marginal")
 
-#m1<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,data=dat6,na.action=na.omit)
+m1<-lme(mpd.obs.z.weighted~Community.x*Site,random=~1|PlantIndividual,data=dat6,na.action=na.omit)
 #m2<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,weights=varIdent(form=~1|Site),data=dat6,na.action=na.omit)
 #m3<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,weights=varIdent(form=~1|Community.x),data=dat6,na.action=na.omit)
-#anova(m1,m2,m3)
+anova(m1,type="marginal")
 
 m1<-lm(mpd.obs.z.weighted~Community.x,data=dat6,na.action=na.omit)
 anova(m1)
@@ -632,6 +632,10 @@ ggsave("MDplot.png")
 ## MNTD Stats
 
 ``` {r}
+
+m1<-lme(mntd.obs.z.weighted~Community.x*Site,random=~1|PlantIndividual,data=dat6,na.action=na.omit)
+anova(m1,type="marginal")
+
 m1<-lm(mntd.obs.z.weighted~Community.x,data=dat6,na.action=na.omit)
 anova(m1)
 hist(resid(m1))
