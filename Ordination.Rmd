@@ -76,8 +76,8 @@ datp3<-prune_samples(sample_sums(datp2)>=1, datp2)
 library("phyloseq")
 mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site))
 anova(mynmdsALLb,by="margin")
-#mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x*Site))
-#anova(mynmdsALLb,by="margin")
+mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x*Site))
+anova(mynmdsALLb,by="margin")
 
 #Getting variance explained
 m1<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Condition(PlantIndividual+Site)))
@@ -118,7 +118,7 @@ plot1<-ggplot(site_scores1)+
   theme(legend.position = "none")+
   xlab("CAP1 [7.7%]") +  # 
   ylab("CAP2 [3.6%]") +  # 
-  annotate("text",x=1.5,y=3.1,label="Community *\nSite         NS")+
+  annotate("text",x=1.5,y=3.1,label="Community **\nSite         NS")+
   expand_limits(x=2.5,y = 3.4)+
   scale_shape_manual(values=c(5,3,16))+ 
   geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
@@ -194,7 +194,7 @@ plot2<-ggplot(site_scores2)+
   theme_classic()+#  theme(legend.position = "none")
   xlab("CAP1 [5.8%]") +  # 
   ylab("CAP2 [3.6%]") +  # 
-  annotate("text",x=1.4,y=2.5,label="Community \u2020\nSite        NS")+
+  annotate("text",x=1.4,y=2.5,label="Community *\nSite        NS")+
   expand_limits(x = 2.3, y = 2.7)+
   scale_shape_manual(values=c(5,3,16))+ 
   geom_point(aes(x=CAP1, y=CAP2,color=Community,shape=Site),size = 2)+

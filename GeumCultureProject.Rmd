@@ -456,7 +456,7 @@ guilds2<-guilds%>%
   full_join(otutomerge)
 head(guilds2)
 #throwing out query sequence 154 and 54 (OTU10)
-#guilds2 <- guilds2[-c(11),]
+guilds2 <- guilds2[-c(11),]
 
 #confident indicies 
 ind<-which(guilds2$guild=="Plant Pathogen")
@@ -571,7 +571,7 @@ dat7<-dat6%>%
 
 #save(dat7, file = "dat7.Rda")
 
-load("dat7.Rda")
+#load("dat7.Rda")
 
 ```
 
