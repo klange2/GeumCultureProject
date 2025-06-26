@@ -161,8 +161,9 @@ gls <- fit linear model using generalized least squares
 
 lme <- linear mixed-effects models
 
+
 ``` {r}
-m1<-lme(SR~Community.x*Site,random=~1|PlantIndividual,data=dat6,na.action=na.omit)
+m1<-gls(SR~Community.x*Site,data=dat6,na.action=na.omit)
 anova(m1,type="marginal")
 #statistically different
 
@@ -232,7 +233,7 @@ ev <- ggplot(even,aes(x=Community,y=data_evenness,color=Community,group=Communit
 ##Stats
 
 ``` {r}
-m1<-lme(data_evenness~Community*Site,random=~1|Community_Site,data=data_alphadiv,na.action=na.omit)
+m1<-gls(data_evenness~Community*Site,data=data_alphadiv,na.action=na.omit)
 anova(m1,type="marginal")
 #statistically different
 
