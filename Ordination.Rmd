@@ -76,8 +76,8 @@ datp3<-prune_samples(sample_sums(datp2)>=1, datp2)
 library("phyloseq")
 mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Site))
 anova(mynmdsALLb,by="margin")
-mynmdsALLb <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x*Site))
-anova(mynmdsALLb,by="margin")
+mynmdsALLb2 <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x*Site))
+anova(mynmdsALLb2,by="margin")
 
 #Getting variance explained
 m1<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Condition(PlantIndividual+Site)))
@@ -92,13 +92,13 @@ summary(m1)
 
 ```{r}
 
-ord <- plot_ordination(datp3, mynmdsALLb, type="samples", color="Site",shape="Community.x",axes=c(1,2))+
+ord <- plot_ordination(datp3, mynmdsALLb2, type="samples", color="Site",shape="Community.x",axes=c(1,2))+
   theme_classic()+#  theme(legend.position = "none")
   scale_shape_manual(values=c(16,3,15,17,5))+ 
   geom_point(size = 2)+
   stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(x=CAP1,y=CAP2,fill=Site),level=.95,inherit.aes = F)
 
-plot1<-plot_ordination(datp3, mynmdsALLb, type="samples", color="Community.x",shape="Site",axes=c(1,2))+
+plot1<-plot_ordination(datp3, mynmdsALLb2, type="samples", color="Community.x",shape="Site",axes=c(1,2))+
   theme_classic()+#  theme(legend.position = "none")
   scale_shape_manual(values=c(5,3,16,15,17))+ 
   geom_point(size = 2)+
@@ -116,9 +116,9 @@ hull1 <- site_scores1 %>%
 plot1<-ggplot(site_scores1)+
   theme_classic()+
   theme(legend.position = "none")+
-  xlab("CAP1 [7.7%]") +  # 
-  ylab("CAP2 [3.6%]") +  # 
-  annotate("text",x=1.5,y=3.1,label="Community **\nSite         NS")+
+  xlab("CAP1 [8.7%]") +  # 
+  ylab("CAP2 [4.5%]") +  # 
+  annotate("text",x=1.5,y=3.1,label="Community *\nSite         NS")+
   expand_limits(x=2.5,y = 3.4)+
   scale_shape_manual(values=c(5,3,16))+ 
   geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
@@ -144,8 +144,8 @@ plot1<-ggplot(site_scores1)+
 #mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~HostPlant+Site))
 mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x+Site))
 anova(mynmdsALLm,by="margin")
-mynmdsALLm <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x*Site))
-anova(mynmdsALLm,by="margin")
+mynmdsALLm2 <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Community.x*Site))
+anova(mynmdsALLm2,by="margin")
 #anova(mynmdsALLm,by="margin",permutations = how(blocks=sample_data(datp)$Year,nperm=9999)) #adding permutations within year does not change the anova results
 
 #percent explained
@@ -160,14 +160,14 @@ summary(m1)
 
 ```{r}
 
-plot2<-plot_ordination(datp, mynmdsALLm, type="samples", color="Community.x",shape="Site",axes=c(1,2))+
+plot2<-plot_ordination(datp, mynmdsALLm2, type="samples", color="Community.x",shape="Site",axes=c(1,2))+
   theme_classic()+#  theme(legend.position = "none")
   scale_shape_manual(values=c(5,3,16,15,17))+ 
   geom_point(size = 2)+
   stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(x=CAP1,y=CAP2,fill=Community.x),level=.95,inherit.aes = F)
 
 #with edges on the ellipse
-plot3 <- plot_ordination(datp, mynmdsALLm, type="samples", color="Community.x",shape="Site",axes=c(1,2))+
+plot3 <- plot_ordination(datp, mynmdsALLm2, type="samples", color="Community.x",shape="Site",axes=c(1,2))+
   theme_classic()+#  theme(legend.position = "none")
   scale_shape_manual(values=c(5,3,16,15,17))+ 
   geom_point(size = 2)+
@@ -192,8 +192,8 @@ colnames(hull2)[2] <- "Community"
 #Kacey use this one
 plot2<-ggplot(site_scores2)+
   theme_classic()+#  theme(legend.position = "none")
-  xlab("CAP1 [5.8%]") +  # 
-  ylab("CAP2 [3.6%]") +  # 
+  xlab("CAP1 [8.5%]") +  # 
+  ylab("CAP2 [4.7%]") +  # 
   annotate("text",x=1.4,y=2.5,label="Community *\nSite        NS")+
   expand_limits(x = 2.3, y = 2.7)+
   scale_shape_manual(values=c(5,3,16))+ 
