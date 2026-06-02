@@ -36,8 +36,8 @@ should change to referencing dat6 (it is the same data I just added the MPD data
 
 ``` {r}
 options(contrasts=c("contr.helmert","contr.poly"))
-options(contrasts=c("contr.treatment","contr.poly"))
-options("contrasts")
+#options(contrasts=c("contr.treatment","contr.poly"))
+#options("contrasts")
 
 ```
 
