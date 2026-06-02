@@ -165,7 +165,7 @@ funp8 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Commun
 funp9 <- ggplot(dat7,aes(x=Community.x,y=pathotrophbroadprobablehptaxapercent,color=Community.x,group=Community.x))+
   geom_boxplot()+
   geom_point()+
-  ylim(0,100)+
+   scale_y_continuous(breaks = c(0, 20, 40, 60, 80, 100), labels = c("0","20","40","60","80","100"))+
   labs(x = "",y="Pathotroph",tag="B") +
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
@@ -247,7 +247,7 @@ funer5 <- ggplot(dat7,aes(x=Community.x,y=ericoidbroadprobablehptaxapercent,colo
   geom_boxplot()+
   geom_point()+
   labs(x = "",y="Ericoid \n Mycorrhiza",tag="D") +
-  ylim(0,100)+
+  scale_y_continuous(breaks = c(0, 20, 40, 60, 80, 100), labels = c("0","20","40","60","80","100"))+
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
 
@@ -324,7 +324,7 @@ funsym5 <- ggplot(dat7,aes(x=Community.x,y=symbiotrophbroadprobablehptaxapercent
   geom_boxplot()+
   geom_point()+
   labs(x = "",y="Symbiotroph",tag="A") +
-  ylim(0,100)+
+   scale_y_continuous(breaks = c(0, 20, 40, 60, 80, 100), labels = c("0","20","40","60","80","100"))+
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
 
@@ -399,12 +399,18 @@ funsap4 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Comm
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1)
 
+library(ggplot2)
+
 #box plot with raw data
 funsap5 <- ggplot(dat7,aes(x=Community.x,y=saprotrophbroadprobablehptaxapercent,color=Community.x,group=Community.x))+
     geom_boxplot()+
   geom_point()+
+  ggplot2::annotate("text", x = 1, y = 110, label = "c", color = "black")+
+  ggplot2::annotate("text", x = 2, y = 110, label = "a", color = "black")+
+  ggplot2::annotate("text", x = 3, y = 85, label = "bc", color = "black")+
+  ggplot2::annotate("text", x = 4, y = 110, label = "ab", color = "black")+
   labs(x = "",y="Saprotroph",tag="C") +
-  ylim(0,100)+
+  scale_y_continuous(breaks = c(0, 20, 40, 60, 80, 100))+
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
 
@@ -585,9 +591,7 @@ ggsave("trop.png")
 
 
 #trophic mode box plot with raw data
-trop2 <- ggarrange(funsym5, funp9, funsap5,funer5, ncol = 2, nrow = 2)
-annotate_figure(trop2, top = text_grob("Average Percentage in Probable/Highly Probable Taxa", 
-               color = "black", face = "bold", size = 14))
+trop2 <- plot_grid(funsym5, funp9, funsap5,funer5, ncol = 2, nrow = 2)
 ggsave("trop2.png")
 
 ```
@@ -682,6 +686,14 @@ anova(m2sym,type="marginal")
 #boxplot(resid(m1sap)~dat7$CommunitySitePL)
 m2sap<-gls(saprotrophbroadprobablehptaxapercent~Community.x*Site,data=dat7,na.action=na.omit)
 anova(m2sap,type="marginal")
+
+#tukey
+tuk_sap = aov(saprotrophbroadprobablehptaxapercent ~ Community.x, data = dat7)
+summary(tuk_sap)
+
+hsd_sap <- TukeyHSD(tuk_sap) # require the agricolae package  
+hsd_sap2 <- HSD.test(tuk_sap, "Community.x", group=T)$groups  
+show(hsd_sap2)
 #m1sap<-lm(saprotrophtaxapercent~Community.x,data=dat7,na.action=na.omit)
 #anova(m1sap)
 #hist(resid(m1sap))

@@ -80,10 +80,12 @@ mynmdsALLb2 <- ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F
 anova(mynmdsALLb2,by="margin")
 
 #Getting variance explained
-m1<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Condition(PlantIndividual+Site)))
-summary(m1)
-m1<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Site+Condition(PlantIndividual+Community.x)))
-summary(m1)
+mynmdsb<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x+Condition(Site))); mynmdsb
+
+mynmdsb2<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Site+Condition(Community.x))); mynmdsb2
+
+mynmdsb3<-ordinate(datp3, "CAP",distance(datp3, method = "bray", binary = F),formula=as.formula(~Community.x*Site+Condition(Site+Community.x)));mynmdsb3
+
 
 ```
 
@@ -118,8 +120,8 @@ plot1<-ggplot(site_scores1)+
   theme(legend.position = "none")+
   xlab("CAP1 [8.7%]") +  # 
   ylab("CAP2 [4.5%]") +  # 
-  annotate("text",x=1.5,y=3.1,label="Community *\nSite         NS")+
-  expand_limits(x=2.5,y = 3.4)+
+  ggplot2::annotate("text",x=1.3,y=3.1,label="Community *\nSite         NS\nCommunity*Site NS", size = 3)+
+  expand_limits(x=2.5,y = 3.6)+
   scale_shape_manual(values=c(5,3,16))+ 
   geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
   geom_polygon(data=hull1,aes(x=CAP1,y=CAP2, fill=Community.x,colour = Community.x),alpha=.2)
@@ -153,6 +155,15 @@ m1 <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Communit
 summary(m1)
 m1 <- ordinate(datp, "CAP",distance=MPDdistweighted,formula=as.formula(~Site+Condition(PlantIndividual+Community.x)))
 summary(m1)
+
+# variance explained
+library("phyloseq")
+
+mynmdsm <- ordinate(datp, "CAP",distance=MPDdistweighted, formula=as.formula(~Community.x+Condition(Site)));mynmdsm
+
+mynmdsm2 <- ordinate(datp, "CAP",distance=MPDdistweighted, formula=as.formula(~Site+Condition(Community.x)));mynmdsm2
+
+mynmdsm3 <- ordinate(datp, "CAP",distance=MPDdistweighted, formula=as.formula(~Community.x*Site+Condition(Site+Community.x)));mynmdsm3
 
 ```
 
@@ -194,7 +205,7 @@ plot2<-ggplot(site_scores2)+
   theme_classic()+#  theme(legend.position = "none")
   xlab("CAP1 [8.5%]") +  # 
   ylab("CAP2 [4.7%]") +  # 
-  annotate("text",x=1.4,y=2.5,label="Community *\nSite        NS")+
+  ggplot2::annotate("text",x=1.4,y=2.5,label="Community *\nSite        NS\nCommunity*Site NS", size = 3)+
   expand_limits(x = 2.3, y = 2.7)+
   scale_shape_manual(values=c(5,3,16))+ 
   geom_point(aes(x=CAP1, y=CAP2,color=Community,shape=Site),size = 2)+
@@ -213,6 +224,61 @@ plot5 <- plot_ordination(datp, mynmdsALLj, type="samples", color="Site",axes=c(1
 #pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/ordinationcompmpdhulls.pdf",height = 3.5,width = 11)
 ord2 <- plot_grid(plot1, plot2, nrow = 1, labels=c("A. Composition","B. MPD"),label_fontface = "plain",hjust=c(-.4,-0.8),vjust=1,rel_widths = c(1.4,2))
 #dev.off()
+
+```
+
+## MNTD ordination plot
+
+```{r}
+
+datp@sam_data[["Community.x"]] <-  fct_relevel(datp@sam_data[["Community.x"]],"SB", "MM", "DM", "FF")
+
+MNTDdistweighted<-comdistnt(data.frame(t(otu_table(datp))), cophenetic(phy_tree(datp)), abundance.weighted=T)
+
+datp2<-datp%>%
+  filter_taxa(function(x) sum(x>0) >1, prune=T)
+datp3<-prune_samples(sample_sums(datp2)>=1, datp2)
+
+library("phyloseq")
+mynmdsALLt <- ordinate(datp, "CAP",distance=MNTDdistweighted,formula=as.formula(~Community.x+Site))
+anova(mynmdsALLt,by="margin")
+mynmdsALLt2 <- ordinate(datp, "CAP",distance=MNTDdistweighted,formula=as.formula(~Community.x*Site))
+anova(mynmdsALLt2,by="margin")
+
+plot1m <- plot_ordination(datp, mynmdsALLt2, type="samples", color="Community.x",axes=c(1,2))+
+  theme_classic()+#  theme(legend.position = "none")
+  geom_point(size = 2)+
+  stat_ellipse(geom = "polygon", type="t", alpha=0.2, aes(fill=Community.x),level=.95)
+
+#Plotting convex hulls rather than ellipses, USE THIS FOR MANUSCRIPT
+site_scores3 <- data.frame(cbind(sample_data(datp),vegan::scores(mynmdsALLt)$sites,labels=rownames(vegan::scores(mynmdsALLt)$sites)))
+
+hull1 <- site_scores3 %>%
+  group_by(Community.x) %>%
+  slice(chull(CAP1,CAP2))
+
+#kacey use this one
+plot2m<-ggplot(site_scores3)+
+  theme_classic()+
+  theme(legend.position = "none")+
+  xlab("CAP1 [10.5%]") +  # 
+  ylab("CAP2 [7.1%]") +  # 
+  annotate("text",x=1.5,y=3.1,label="Community *\nSite         NS")+
+  expand_limits(x=2.5,y = 3.4)+
+  scale_shape_manual(values=c(5,3,16))+ 
+  geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
+  geom_polygon(data=hull1,aes(x=CAP1,y=CAP2, fill=Community.x,colour = Community.x),alpha=.2)
+
+ord3 <- plot_grid(plot1, plot2, plot2m, nrow = 1, labels=c("A. Composition","B. MPD", "C. MNTD"),label_fontface = "plain",hjust=c(-.4,-0.8),vjust=1,rel_widths = c(1.4,2))
+
+# variance explained
+library("phyloseq")
+
+mynmdst <- ordinate(datp, "CAP",distance=MNTDdistweighted, formula=as.formula(~Community.x+Condition(Site)));mynmdst
+
+mynmdst2 <- ordinate(datp, "CAP",distance=MNTDdistweighted, formula=as.formula(~Site+Condition(Community.x)));mynmdst2
+
+mynmdst3 <- ordinate(datp, "CAP",distance=MNTDdistweighted, formula=as.formula(~Community.x*Site+Condition(Site+Community.x)));mynmdst3
 
 ```
 

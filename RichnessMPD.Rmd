@@ -144,14 +144,17 @@ richness<-dat6%>%
   group_by(Community.x,Site)%>%
   summarise(SR)
 
+levels(richness$Site) <- c("Soddie", "Saddle")
+
 rm5 <- ggplot(richness,aes(x=Community.x,y=SR,color=Community.x,group=Community.x))+
   geom_boxplot()+
   geom_point()+
   labs(x = "",y="", title = "Richness", tag="A") +
   theme_classic()+
-  theme(line=element_line(linewidth = .3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
-  facet_grid(Site ~.)+
-  theme(strip.text.y = element_blank())
+  theme(line=element_line(linewidth = .3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",strip.placement = "outside",axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  facet_wrap(vars(Site),strip.position = "bottom")+
+  theme(strip.text.x = element_blank())
+dev.off()
 
 ```
 
@@ -178,6 +181,8 @@ anova(m1,type="marginal")
 #site is statistically different
 #hist(resid(m2))
 #boxplot(resid(m2)~dat6$CommunitySitePL)
+
+library(agricolae)
 
 #tukey
 tuk_rc = aov(SR ~ Community.x, data = dat6)
@@ -218,15 +223,18 @@ even<-data_alphadiv%>%
   group_by(Community,Site)%>%
   summarise(data_evenness)
 
+levels(even$Site) <- c("Soddie", "Saddle")
+
 #box plot with raw data
 ev <- ggplot(even,aes(x=Community,y=data_evenness,color=Community,group=Community))+
   geom_boxplot()+
   geom_point()+
   labs(x = "",y="", title = "Evenness", tag="B") +
   theme_classic()+
-  theme(line=element_line(linewidth = .3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
-  facet_grid(Site ~.)+
-  theme(strip.text.y = element_blank())
+  theme(line=element_line(linewidth = .3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",strip.placement = "outside",axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  facet_wrap(vars(Site),strip.position = "bottom")+
+  theme(strip.text.x = element_blank())
+dev.off()
 
 ```
 
@@ -287,8 +295,9 @@ shann <- ggplot(shan,aes(x=Community,y=data_shannon,color=Community,group=Commun
   ylim(0, 2.1)+
   labs(x = "",y="", title = "Shannon", tag="C") +
   theme_classic()+
-  theme(line=element_line(linewidth = .3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
-  facet_grid(Site ~.)
+  theme(line=element_line(linewidth = .3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",strip.placement = "outside",axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+  facet_wrap(vars(Site),strip.position = "bottom")
+dev.off()
 
 ```
 
@@ -331,10 +340,10 @@ show(hsd_s2)
 
 ```{r}
 
-#divplot <- ggarrange(rm5, ev, shan, ncol = 3, nrow = 1)
-divplot <- (rm5 | ev | shann)
+#divplot <- ggarrange(rm5, ev, shan, ncol = 1)
+divplot <- (rm5 / ev / shann)
 
-ggsave("divplot.png")
+ggsave("divplot.png",divplot,width = 8, height = 12)
 
 ```
 
@@ -493,7 +502,7 @@ options(contrasts=c("contr.helmert","contr.poly"))
 # m2<-gls(mpd.obs.z.weighted~HostPlant*Site,data=phragspartina,na.action=na.omit)
 # anova(m2,type="marginal")
 
-m1<-gls(mpd.obs.z.weighted~Community.x*Site,data=dat6,na.action=na.omit)
+m1<-gls(mpd.obs.z.weighted~Community.x*Site,data = dat6,na.action = na.omit)
 #m2<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,weights=varIdent(form=~1|Site),data=dat6,na.action=na.omit)
 #m3<-lme(mpd.obs.z.weighted~Community.x+Site,random=~1|PlantIndividual,weights=varIdent(form=~1|Community.x),data=dat6,na.action=na.omit)
 anova(m1,type="marginal")
@@ -505,6 +514,8 @@ anova(m1,type="marginal")
 
 #m2<-lm(mpd.obs.z.weighted~Site,data=dat6,na.action=na.omit)
 #anova(m2)
+
+library(agricolae)
 
 #tukey
 tuk_mpd = aov(mpd.obs.z.weighted ~ Community.x, data = dat6)
@@ -922,7 +933,7 @@ cleanedtree_v2$tip.label <- labels[[4]][match(cleanedtree_v2$tip.label, labels[[
 
 colnames(tree.data) <-  c("SB"," ","MM","  ","DM","   ","FF","    ")
 
-tree <- plotTree.datamatrix(cleanedtree_v2,tree.data,fsize=0.5,palettes=c("YlOrRd","PuBuGn"),yexp=1.12,xexp=2)
+tree <- plotTree.datamatrix(cleanedtree_v2,tree.data,fsize=0.5,palettes=c("YlOrRd","PuBuGn"),yexp=1.05,xexp=1.65)
 leg <- legend(x="topright",names(tree$colors$DM),cex=0.7,pch=22,pt.bg=tree$colors$DM,pt.cex=1.5,bty="n",title="Soddie")
 #leg2 <- legend(x="bottomright",names(tree$colors$DM_Q),cex=0.7,pch=22,pt.bg=tree$colors$DM_Q,pt.cex=1.5,bty="n",title="Saddle")
 leg2 <- legend(x=(leg$rect$left), y=(leg$rect$top-leg$rect$h),names(tree$colors$` `),cex=0.7,pch=22,pt.bg=tree$colors$` `,pt.cex=1.5,bty="n",title="Saddle")
