@@ -31,7 +31,7 @@ library(forcats)
 # The following initializes usage of Bioc devel
 #BiocManager::install(version='devel')
 
-BiocManager::install("sangeranalyseR")
+#BiocManager::install("sangeranalyseR")
 #install.packages("devtools")
 #BiocManager::install("GenomeInfoDbData")
 #BiocManager::install("GenomeInfoDb", force = TRUE)
