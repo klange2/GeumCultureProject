@@ -42,7 +42,6 @@ pathmean<-dat7%>%
     mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))%>%
   summarise(mean=mean(plantpathogentaxapercent),se=std.error(plantpathogentaxapercent),count=n())
 
-#pdf("/Users/farrer/Dropbox/EmilyComputerBackup/Documents/LAmarsh/Culturing/Manuscripts/richness.pdf",width=6.6,height=3.5)
 funp <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Community.x))+
   labs(x = "",y="Plant Pathogen") +
   theme_classic()+
@@ -92,6 +91,8 @@ funp4 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Commun
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) 
+
+ggsave("plantpathogen.png",funp4)
 
 ```
 # Pathotroph
@@ -169,6 +170,8 @@ funp9 <- ggplot(dat7,aes(x=Community.x,y=pathotrophbroadprobablehptaxapercent,co
   labs(x = "",y="Pathotroph",tag="B") +
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
+
+ggsave("pathotroph.png",funp9)
 
 ```
 
@@ -251,6 +254,8 @@ funer5 <- ggplot(dat7,aes(x=Community.x,y=ericoidbroadprobablehptaxapercent,colo
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
 
+ggsave("ericoid.png",funer5)
+
 ```
 # Symbiotroph
 
@@ -327,6 +332,8 @@ funsym5 <- ggplot(dat7,aes(x=Community.x,y=symbiotrophbroadprobablehptaxapercent
    scale_y_continuous(breaks = c(0, 20, 40, 60, 80, 100), labels = c("0","20","40","60","80","100"))+
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
+
+ggsave("symbiotroph.png",funsym5)
 
 ```
 # Saprotroph
@@ -414,6 +421,8 @@ funsap5 <- ggplot(dat7,aes(x=Community.x,y=saprotrophbroadprobablehptaxapercent,
   theme_classic()+
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))
 
+ggsave("saprotroph.png",funsap5)
+
 ```
 # Plant Saprotroph
 
@@ -483,6 +492,8 @@ funpsap4 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Com
   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1)
+
+ggsave("plantsaprotroph.png",funsap4)
 
 ```
 # Endophyte
@@ -554,6 +565,8 @@ funend4 <- ggplot(pathmean,aes(x=Community.x,y=mean,color=Community.x,group=Comm
   geom_point(size=2.75)+
   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1)
 
+ggsave("endophyte.png",funend4)
+
 ```
 
 
@@ -587,12 +600,11 @@ trop <- (funsym4|funp8)/(funsap4|funer4)
 trop <- ggarrange(funsym4, funp8, funsap4,funer4, ncol = 2, nrow = 2)
 annotate_figure(trop, top = text_grob("Average Percentage in Probable/Highly Probable Taxa", 
                color = "black",face = "bold", size = 14))
-ggsave("trop.png")
 
 
 #trophic mode box plot with raw data
 trop2 <- plot_grid(funsym5, funp9, funsap5,funer5, ncol = 2, nrow = 2)
-ggsave("trop2.png")
+ggsave("functionplot.png",trop2)
 
 ```
 
@@ -743,113 +755,113 @@ anova(m4end)
 tuk_p = aov(plantpathogentaxapercent ~ Community.x, data = dat7)
 summary(tuk_p)
 
-hsd_path <- TukeyHSD(tuk_p) # require the agricolae package  
-hsd_path2 <- HSD.test(tuk_p, "Community.x", group=T)$groups  
-show(hsd_path2)
+#hsd_path <- TukeyHSD(tuk_p) # require the agricolae package  
+#hsd_path2 <- HSD.test(tuk_p, "Community.x", group=T)$groups  
+#show(hsd_path2)
 
 tuk_ps = aov(plantpathogentaxapercent ~ Site, data = dat7)
 summary(tuk_ps)
 
-hsd_ps <- TukeyHSD(tuk_ps) # require the agricolae package  
-hsd_ps2 <- HSD.test(tuk_ps, "Site", group=T)$groups  
-show(hsd_ps2)
+#hsd_ps <- TukeyHSD(tuk_ps) # require the agricolae package  
+#hsd_ps2 <- HSD.test(tuk_ps, "Site", group=T)$groups  
+#show(hsd_ps2)
 
 tuk_p2 = aov(plantpathogenbroadprobablehptaxapercent ~ Community.x, data = dat7)
 summary(tuk_p2)
 
-hsd_path3 <- TukeyHSD(tuk_p2) # require the agricolae package  
-hsd_path4 <- HSD.test(tuk_p2, "Community.x", group=T)$groups  
-show(hsd_path4)
+#hsd_path3 <- TukeyHSD(tuk_p2) # require the agricolae package  
+#hsd_path4 <- HSD.test(tuk_p2, "Community.x", group=T)$groups  
+#show(hsd_path4)
 
 #pathotroph
 tuk_p3 = aov(pathotrophtaxapercent ~ Community.x, data = dat7)
 summary(tuk_p3)
 
-hsd_path3 <- TukeyHSD(tuk_p3) # require the agricolae package  
-hsd_path4 <- HSD.test(tuk_p3, "Community.x", group=T)$groups  
-show(hsd_path4)
+#hsd_path3 <- TukeyHSD(tuk_p3) # require the agricolae package  
+#hsd_path4 <- HSD.test(tuk_p3, "Community.x", group=T)$groups  
+#show(hsd_path4)
 
 tuk_p3s = aov(pathotrophtaxapercent ~ Site, data = dat7)
 summary(tuk_p3s)
 
-hsd_p3s <- TukeyHSD(tuk_p3s) # require the agricolae package  
-hsd_p3s2 <- HSD.test(tuk_p3s, "Site", group=T)$groups  
-show(hsd_p3s2)
+#hsd_p3s <- TukeyHSD(tuk_p3s) # require the agricolae package  
+#hsd_p3s2 <- HSD.test(tuk_p3s, "Site", group=T)$groups  
+#show(hsd_p3s2)
 
 #ericoid mycorrhizal
 tuk_e = aov(ericoidtaxapercent ~ Community.x, data = dat7)
 summary(tuk_e)
 
-hsd_e <- TukeyHSD(tuk_e) # require the agricolae package  
-hsd_e2 <- HSD.test(tuk_e, "Community.x", group=T)$groups  
-show(hsd_e2)
+#hsd_e <- TukeyHSD(tuk_e) # require the agricolae package  
+#hsd_e2 <- HSD.test(tuk_e, "Community.x", group=T)$groups  
+#show(hsd_e2)
 
 tuk_es = aov(ericoidtaxapercent ~ Site, data = dat7)
 summary(tuk_es)
 
-hsd_es <- TukeyHSD(tuk_es) # require the agricolae package  
-hsd_es2 <- HSD.test(tuk_es, "Site", group=T)$groups  
-show(hsd_es2)
+#hsd_es <- TukeyHSD(tuk_es) # require the agricolae package  
+#hsd_es2 <- HSD.test(tuk_es, "Site", group=T)$groups  
+#show(hsd_es2)
 
 tuk_e2 = aov(ericoidbroadprobablehptaxapercent ~ Community.x, data = dat7)
 summary(tuk_e2)
 
-hsd_e3 <- TukeyHSD(tuk_e2) # require the agricolae package  
-hsd_e4 <- HSD.test(tuk_e2, "Community.x", group=T)$groups  
-show(hsd_e4)
+#hsd_e3 <- TukeyHSD(tuk_e2) # require the agricolae package  
+#hsd_e4 <- HSD.test(tuk_e2, "Community.x", group=T)$groups  
+#show(hsd_e4)
 
 #symbiotrophs
 tuk_sym = aov(symbiotrophtaxapercent ~ Community.x, data = dat7)
 summary(tuk_sym)
 
-hsd_sym <- TukeyHSD(tuk_sym) # require the agricolae package  
-hsd_sym2 <- HSD.test(tuk_sym, "Community.x", group=T)$groups  
-show(hsd_sym2)
+#hsd_sym <- TukeyHSD(tuk_sym) # require the agricolae package  
+#hsd_sym2 <- HSD.test(tuk_sym, "Community.x", group=T)$groups  
+#show(hsd_sym2)
 
 tuk_sys = aov(symbiotrophtaxapercent ~ Site, data = dat7)
 summary(tuk_sys)
 
-hsd_sys <- TukeyHSD(tuk_sys) # require the agricolae package  
-hsd_sys2 <- HSD.test(tuk_sys, "Site", group=T)$groups  
-show(hsd_sys2)
+#hsd_sys <- TukeyHSD(tuk_sys) # require the agricolae package  
+#hsd_sys2 <- HSD.test(tuk_sys, "Site", group=T)$groups  
+#show(hsd_sys2)
 
 #saprotrophs
 tuk_sap = aov(saprotrophtaxapercent ~ Community.x, data = dat7)
 summary(tuk_sap)
 
-hsd_sap <- TukeyHSD(tuk_sap) # require the agricolae package  
-hsd_sap2 <- HSD.test(tuk_sap, "Community.x", group=T)$groups  
-show(hsd_sap2)
+#hsd_sap <- TukeyHSD(tuk_sap) # require the agricolae package  
+#hsd_sap2 <- HSD.test(tuk_sap, "Community.x", group=T)$groups  
+#show(hsd_sap2)
 
 tuk_sas = aov(saprotrophtaxapercent ~ Site, data = dat7)
 summary(tuk_sas)
 
-hsd_sas <- TukeyHSD(tuk_sas) # require the agricolae package  
-hsd_sas2 <- HSD.test(tuk_sas, "Site", group=T)$groups  
-show(hsd_sas2)
+#hsd_sas <- TukeyHSD(tuk_sas) # require the agricolae package  
+#hsd_sas2 <- HSD.test(tuk_sas, "Site", group=T)$groups  
+#show(hsd_sas2)
 
 tuk_sap2 = aov(saprotrophbroadprobablehptaxapercent ~ Community.x, data = dat7)
 summary(tuk_sap2)
 
-hsd_sap3 <- TukeyHSD(tuk_sap2) # require the agricolae package  
-hsd_sap4 <- HSD.test(tuk_sap2, "Community.x", group=T)$groups  
-show(hsd_sap4)
+#hsd_sap3 <- TukeyHSD(tuk_sap2) # require the agricolae package  
+#hsd_sap4 <- HSD.test(tuk_sap2, "Community.x", group=T)$groups  
+#show(hsd_sap4)
 
 #plant saprotroph
 tuk_psap = aov(plantsaprotrophbroadprobablehptaxapercent ~ Community.x, data = dat7)
 summary(tuk_psap)
 
-hsd_psap <- TukeyHSD(tuk_psap) # require the agricolae package  
-hsd_psap2 <- HSD.test(tuk_psap, "Community.x", group=T)$groups  
-show(hsd_psap2)
+#hsd_psap <- TukeyHSD(tuk_psap) # require the agricolae package  
+#hsd_psap2 <- HSD.test(tuk_psap, "Community.x", group=T)$groups  
+#show(hsd_psap2)
 
 #endophytes
 tuk_end = aov(endophytebroadprobablehptaxapercent ~ Community.x, data = dat7)
 summary(tuk_end)
 
-hsd_end <- TukeyHSD(tuk_end) # require the agricolae package  
-hsd_end2 <- HSD.test(tuk_end, "Community.x", group=T)$groups  
-show(hsd_end2)
+#hsd_end <- TukeyHSD(tuk_end) # require the agricolae package  
+#hsd_end2 <- HSD.test(tuk_end, "Community.x", group=T)$groups  
+#show(hsd_end2)
 
 ```
 

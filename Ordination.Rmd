@@ -5,6 +5,7 @@
 library(cba)
 library(remotes)
 #remotes::install_github("jfq3/QsRutils")
+library(phyloseq)
 library(QsRutils)
 library(patchwork)
 library(forcats)
@@ -120,11 +121,13 @@ plot1<-ggplot(site_scores1)+
   theme(legend.position = "none")+
   xlab("CAP1 [8.7%]") +  # 
   ylab("CAP2 [4.5%]") +  # 
-  ggplot2::annotate("text",x=1.3,y=3.1,label="Community *\nSite         NS\nCommunity*Site NS", size = 3)+
-  expand_limits(x=2.5,y = 3.6)+
+  ggplot2::annotate("text",x=1.3,y=3.3,label="Community *\nSite         NS\nCommunity*Site NS", size = 3)+
+  expand_limits(x=2.6,y = 3.6)+
   scale_shape_manual(values=c(5,3,16))+ 
   geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
   geom_polygon(data=hull1,aes(x=CAP1,y=CAP2, fill=Community.x,colour = Community.x),alpha=.2)
+
+ggsave("Compositionordination.png",plot1)
 
 # p1=plot_ordination(datp3, mynmdsALLb, type="samples",shape="HostPlant",color="HostPlant",axes=c(1,2))
 # 
@@ -196,20 +199,22 @@ hull2 <- site_scores2 %>%
   group_by(Community.x) %>%
   slice(chull(CAP1,CAP2))
 
-levels(site_scores2$Site) <- c("Soddie", "Saddle")
-colnames(site_scores2)[2] <- "Community"
-colnames(hull2)[2] <- "Community"
+#levels(site_scores2$Site) <- c("Soddie", "Saddle")
+#colnames(site_scores2)[2] <- "Community"
+#colnames(hull2)[2] <- "Community"
 
 #Kacey use this one
 plot2<-ggplot(site_scores2)+
-  theme_classic()+#  theme(legend.position = "none")
+  theme_classic()+  theme(legend.position = "none")+
   xlab("CAP1 [8.5%]") +  # 
   ylab("CAP2 [4.7%]") +  # 
-  ggplot2::annotate("text",x=1.4,y=2.5,label="Community *\nSite        NS\nCommunity*Site NS", size = 3)+
-  expand_limits(x = 2.3, y = 2.7)+
+  ggplot2::annotate("text",x=1.4,y=2.3,label="Community *\nSite        NS\nCommunity*Site NS", size = 3)+
+  expand_limits(x = 1.7, y = 2.7)+
   scale_shape_manual(values=c(5,3,16))+ 
-  geom_point(aes(x=CAP1, y=CAP2,color=Community,shape=Site),size = 2)+
-  geom_polygon(data=hull2,aes(x=CAP1,y=CAP2, fill=Community,colour = Community),alpha=.2)
+  geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
+  geom_polygon(data=hull2,aes(x=CAP1,y=CAP2, fill=Community.x,colour = Community.x),alpha=.2)
+
+ggsave("MPDordination.png",plot2)
 
 #jaccard
 mynmdsALLj <- ordinate(datp, "CAP",distance(datp, method = "jaccard", binary = TRUE),formula=as.formula(~Community.x+Site+Condition(PlantIndividual)))
@@ -257,19 +262,28 @@ hull1 <- site_scores3 %>%
   group_by(Community.x) %>%
   slice(chull(CAP1,CAP2))
 
+levels(site_scores3$Site) <- c("Soddie", "Saddle")
+colnames(site_scores3)[2] <- "Community"
+colnames(hull1)[2] <- "Community"
+
 #kacey use this one
 plot2m<-ggplot(site_scores3)+
   theme_classic()+
-  theme(legend.position = "none")+
-  xlab("CAP1 [10.5%]") +  # 
-  ylab("CAP2 [7.1%]") +  # 
-  annotate("text",x=1.5,y=3.1,label="Community *\nSite         NS")+
-  expand_limits(x=2.5,y = 3.4)+
+  #theme(legend.position = "none")+
+  xlab("CAP1 [10.5%]") + #  
+  ylab("CAP2 [7.1%]") +   #
+  ggplot2::annotate("text",x=1.5,y=1.8,label="Community *\nSite         NS",size =3)+
+  expand_limits(x=2,y = 2.1)+
   scale_shape_manual(values=c(5,3,16))+ 
-  geom_point(aes(x=CAP1, y=CAP2,color=Community.x,shape=Site),size = 2)+
-  geom_polygon(data=hull1,aes(x=CAP1,y=CAP2, fill=Community.x,colour = Community.x),alpha=.2)
+  geom_point(aes(x=CAP1, y=CAP2,color=Community,shape=Site),size = 2)+
+  geom_polygon(data=hull1,aes(x=CAP1,y=CAP2, fill=Community,colour = Community),alpha=.2)
 
-ord3 <- plot_grid(plot1, plot2, plot2m, nrow = 1, labels=c("A. Composition","B. MPD", "C. MNTD"),label_fontface = "plain",hjust=c(-.4,-0.8),vjust=1,rel_widths = c(1.4,2))
+ggsave("MNTDordination.png",plot2m)
+
+ord3 <- plot_grid(plot1, plot2, nrow = 1, labels=c("A. Composition","B. MPD"),label_fontface = "plain",hjust=c(-.4,-0.8),vjust=1,rel_widths = c(1.7,1.7))
+ord4 <- plot_grid(ord3,plot2m,ncol=1,labels = c("","C. MNTD"),label_fontface = "plain",hjust=c(-.4,-0.8))
+
+ggsave("AllOrdination.png",ord4)
 
 # variance explained
 library("phyloseq")

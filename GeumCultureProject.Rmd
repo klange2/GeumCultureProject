@@ -31,7 +31,7 @@ library(forcats)
 # The following initializes usage of Bioc devel
 #BiocManager::install(version='devel')
 
-#BiocManager::install("sangeranalyseR")
+BiocManager::install("sangeranalyseR")
 #install.packages("devtools")
 #BiocManager::install("GenomeInfoDbData")
 #BiocManager::install("GenomeInfoDb", force = TRUE)
@@ -45,7 +45,7 @@ library(devtools)
 #install_github("roblanf/sangeranalyseR", ref = "develop")
 #install.packages("GenomeInfoDb")
 library(sangeranalyseR) #go to GitHub for TMZ file or
-#install(BiocManager)
+#install.packages("BiocManager")
 library(sangerseqR)
 #library(Biostrings)
 #library(ggtree)
@@ -182,6 +182,7 @@ Query.sequence is also unique to each isolate. It is the sample number (1-250).
 geumroot <- read_sheet("https://docs.google.com/spreadsheets/d/1777xpjyf3xTVaZhjptNv1k95fXLUY7W2tBdRKxo1YmU/edit?gid=2040713195#gid=2040713195", sheet = "assignments_report_addvoucherQYR3BIB5", na='NULL')
 
 #query sequence 154 and 54 were OTU10
+#OTU10 was throwing off data by its branch being very long, so considered an outlier and removed from all data
 geumroot <- geumroot[-c(44,155),]
 colnames(geumroot)[16]<- "otu" 
 colnames(geumroot)[1]<- "Query.sequence"
@@ -232,7 +233,10 @@ cleanedtree_v2 <- read.tree("cleanedtree_V2.nwk")
 
 cleanedtree_v2$tip.label <- geumroot[[16]][match(cleanedtree_v2$tip.label, geumroot[[1]])]
 
+png("cleanedtree_v2.png")
 plot(cleanedtree_v2)
+dev.off()
+
 ```
 
 # Culture data
@@ -243,11 +247,12 @@ Culture IDs are unique to the sequence. It contains the site, community, and pla
 
 ```{r}
 culture <- read_sheet("https://docs.google.com/spreadsheets/d/1Ys3msUUPmmOo1NeRqHfsdhJzU_mEwBOytZe6AmAribQ/edit?gid=0#gid=0", sheet = "Sheet1", na='NULL')
+#removing outliers of OTU10 
 culture <- culture[-c(54,154),]
 
 culture2<-culture%>%
-  dplyr::select(Query.sequence,...3)%>%
-  rename(PlantIndividual=...3)%>%
+  dplyr::select(Query.sequence,"...3")%>%
+  dplyr::rename(PlantIndividual="...3")%>%
   separate(PlantIndividual, 
            into = c("Community", "PlantIndividual"), 
            sep = "(?<=[A-Za-z])(?=[0-9])"
@@ -259,7 +264,7 @@ culture2$Query.sequence <- sprintf("%03d", culture2$Query.sequence)
 geumroot2<-geumroot%>%
   unite(CultureID,otu,Taxon.assignment,remove=F)%>%
   dplyr::select(Query.sequence,CultureID,Community_Type_QYR3BIB5,Site_QYR3BIB5,Latitude_QYR3BIB5,Longitude_QYR3BIB5,otu,Trophic.Mode,Guild,Taxon.assignment,GenusSpecies)%>%
-  rename(Community=Community_Type_QYR3BIB5,Site=Site_QYR3BIB5,Lat=Latitude_QYR3BIB5,Long=Longitude_QYR3BIB5)%>%
+  dplyr::rename(Community=Community_Type_QYR3BIB5,Site=Site_QYR3BIB5,Lat=Latitude_QYR3BIB5,Long=Longitude_QYR3BIB5)%>%
 mutate(Community = factor(Community, levels = c("SB", "MM", "DM", "FF")),Site = factor(Site, levels = c("P", "Q")))
 head(geumroot2)
 
@@ -305,14 +310,14 @@ ses.mpd.result.notweighted
 ses.mpd.result.notweighted$CommunitySitePL<-rownames(ses.mpd.result.notweighted)
 ses.mpd.result.notweighted1<-ses.mpd.result.notweighted%>%
   select(CommunitySitePL,mpd.obs.z)%>%
-  rename(mpd.obs.z.notweighted=mpd.obs.z)
+  dplyr::rename(mpd.obs.z.notweighted=mpd.obs.z)
 
 ses.mpd.result.weighted <- ses.mpd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=TRUE, runs=999) #takes 5 min with 999
 ses.mpd.result.weighted
 ses.mpd.result.weighted$CommunitySitePL<-rownames(ses.mpd.result.weighted)
 ses.mpd.result.weighted1<-ses.mpd.result.weighted%>%
   select(CommunitySitePL,mpd.obs.z)%>%
-  rename(mpd.obs.z.weighted=mpd.obs.z)
+  dplyr::rename(mpd.obs.z.weighted=mpd.obs.z)
 
 dat5<-dat4%>%
   full_join(ses.mpd.result.notweighted1)%>%
@@ -332,14 +337,14 @@ ses.mntd.result.notweighted
 ses.mntd.result.notweighted$CommunitySitePL<-rownames(ses.mntd.result.notweighted)
 ses.mntd.result.notweighted1<-ses.mntd.result.notweighted%>%
   select(CommunitySitePL,mntd.obs.z)%>%
-  rename(mntd.obs.z.notweighted=mntd.obs.z)
+  dplyr::rename(mntd.obs.z.notweighted=mntd.obs.z)
 
 ses.mntd.result.weighted <- ses.mntd(dat.comm, phydist, null.model="taxa.labels",abundance.weighted=TRUE, runs=999) #takes 5 min with 999
 ses.mntd.result.weighted
 ses.mntd.result.weighted$CommunitySitePL<-rownames(ses.mntd.result.weighted)
 ses.mntd.result.weighted1<-ses.mntd.result.weighted%>%
   select(CommunitySitePL,mntd.obs.z)%>%
-  rename(mntd.obs.z.weighted=mntd.obs.z)
+  dplyr::rename(mntd.obs.z.weighted=mntd.obs.z)
 
 dat5<-dat4%>%
   full_join(ses.mntd.result.notweighted1)%>%
@@ -376,9 +381,11 @@ At the bottom under downloads
 
 
 ```{r}
+#Personal computer 
+#unite.ref <- ("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/FASTAS/sh_general_release_dynamic_s_04.04.2024.fasta.txt")
 
-unite.ref <- ("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/FASTAS/sh_general_release_dynamic_s_04.04.2024.fasta.txt")
-
+#lab computer
+#unite.ref <- ("C:/Users/klange2/Documents/FASTAS/sh_general_release_dynamic_s_04.04.2024.fasta.txt")
 
 #I got this data from assignments_report_nodupsM76GMYAB
 myotus<-read_sheet("https://docs.google.com/spreadsheets/d/1kSPGI5pIbasJxZHLeBKt6zI-YLhCI9mGqSGN1W0xyFY/edit?gid=1207019924#gid=1207019924",sheet = "assignments_report_nodupsQYR3BIB5")
@@ -400,13 +407,13 @@ taxaonly<-data.frame(taxa$tax);rownames(taxaonly)<-1:dim(taxa$tax)[1]
 taxaboot<-data.frame(taxa$boot);rownames(taxaboot)<-1:dim(taxa$tax)[1] 
 taxaonly
 taxaboot
-rownames(taxaonly)<-rownames(myotus)
-genusspecies<-data.frame(otu=rownames(myotus),genusspecies=paste(gsub("^.*?__","",taxaonly[,"Genus"]),gsub("^.*?__","",taxaonly[,"Species"])),genusboot=taxaboot[,"Genus"],speciesboot=taxaboot[,"Species"])
+#rownames(taxaonly)<-rownames(myotus)
+#genusspecies<-data.frame(otu=rownames(myotus),genusspecies=paste(gsub("^.*?__","",taxaonly[,"Genus"]),gsub("^.*?__","",taxaonly[,"Species"])),genusboot=taxaboot[,"Genus"],speciesboot=taxaboot[,"Species"])
 
-sort(unique(genusspecies$genusspecies))
-sort(unique(taxaonly$Phylum))
+#sort(unique(genusspecies$genusspecies))
+#sort(unique(taxaonly$Phylum))
 
-taxaonly%>%group_by(Phylum)%>%tally()
+#taxaonly%>%group_by(Phylum)%>%tally()
 
 #writeData(taxaonly, file = "taxaonly")
 ```

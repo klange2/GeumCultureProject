@@ -31,16 +31,6 @@ options(contrasts=c("contr.helmert","contr.poly"))
 
 ```
 
-#Richness, PD, MPD
-should change to referencing dat6 (it is the same data I just added the MPD data to the dat4 dataframe)
-
-``` {r}
-options(contrasts=c("contr.helmert","contr.poly"))
-#options(contrasts=c("contr.treatment","contr.poly"))
-#options("contrasts")
-
-```
-
 # Calculating richness by plant community
 
 ```{r}
@@ -156,6 +146,8 @@ rm5 <- ggplot(richness,aes(x=Community.x,y=SR,color=Community.x,group=Community.
   theme(strip.text.x = element_blank())
 dev.off()
 
+ggsave("richnessplot.png",rm5)
+
 ```
 
 ##Stats
@@ -220,8 +212,8 @@ data_alphadiv = data_alphadiv %>%
   unite(Community_Site, c(,1:2), sep = "_", remove = FALSE)
 
 even<-data_alphadiv%>%
-  group_by(Community,Site)%>%
-  summarise(data_evenness)
+  group_by(Community,Site)#%>%
+  #summarise(data_evenness)
 
 levels(even$Site) <- c("Soddie", "Saddle")
 
@@ -235,6 +227,8 @@ ev <- ggplot(even,aes(x=Community,y=data_evenness,color=Community,group=Communit
   facet_wrap(vars(Site),strip.position = "bottom")+
   theme(strip.text.x = element_blank())
 dev.off()
+
+ggsave("evennessplot.png",ev)
 
 ```
 
@@ -280,8 +274,8 @@ show(hsd_e2)
 ```{r}
 
 shan<-data_alphadiv%>%
-  group_by(Community,Site)%>%
-  summarise(data_shannon)
+  group_by(Community,Site)#%>%
+  #summarise(data_shannon)
 
 levels(shan$Site) <- c("Soddie", "Saddle")
 
@@ -298,6 +292,8 @@ shann <- ggplot(shan,aes(x=Community,y=data_shannon,color=Community,group=Commun
   theme(line=element_line(linewidth = .3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth = .5),legend.position = "none",strip.placement = "outside",axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
   facet_wrap(vars(Site),strip.position = "bottom")
 dev.off()
+
+ggsave("shannonplot.png",shann)
 
 ```
 
@@ -488,7 +484,6 @@ mpd4 <- ggplot(mpdmean,aes(x=Site,y=mean,color=Community.x,group=Community.x))+
   facet_wrap(~Community.x)#,strip.position = "bottom")
 
 options(contrasts=c("contr.helmert","contr.poly"))
-#options(contrasts=c("contr.treatment","contr.poly"))
 
 ```
 
@@ -606,8 +601,8 @@ dev.off()
 
 mpd<-dat6%>%
   group_by(Site,Community.x)%>%
-  filter(is.na(mpd.obs.z.weighted)==F)%>%
-  summarise(mpd.obs.z.weighted)
+  filter(is.na(mpd.obs.z.weighted)==F)#%>%
+  #summarise(mpd.obs.z.weighted)
 
 levels(mpd$Site) <- c("Soddie", "Saddle")
 
@@ -622,8 +617,8 @@ mpdfig<-ggplot(mpd,aes(x=Community.x,y=mpd.obs.z.weighted,color=Community.x,grou
 
 mntd<-dat6%>%
   group_by(Site,Community.x)%>%
-  filter(is.na(mntd.obs.z.weighted)==F)%>%
-  summarise(mntd.obs.z.weighted)
+  filter(is.na(mntd.obs.z.weighted)==F)#%>%
+  #summarise(mntd.obs.z.weighted)
 
 levels(mntd$Site) <- c("Soddie", "Saddle")
 
@@ -638,7 +633,7 @@ mntdfig<-ggplot(mntd,aes(x=Community.x,y=mntd.obs.z.weighted,color=Community.x,g
 
 MDplot <- ggarrange(mpdfig, mntdfig, ncol = 2, nrow = 1)
 
-ggsave("MDplot.png")
+ggsave("MPD,MNTDplot.png",MDplot)
 
 ```
 ## MNTD Stats
@@ -657,7 +652,7 @@ anova(m1,type="marginal")
 #anova(m2)
 
 #tukey
-#tuk_mntd = aov(mntd.obs.z.weighted ~ Community.x, data = dat6)
+tuk_mntd = aov(mntd.obs.z.weighted ~ Community.x, data = dat6)
 #summary(tuk_mntd)
 
 hsd_mntd <- TukeyHSD(tuk_mntd) # require the agricolae package  
@@ -755,21 +750,7 @@ trial2 <- ggplot(mpdmean,aes(x=Community.x,y=mean,color=Community.x,group=Site))
 
 ```
 
-## Stats
-
-``` {r}
-
-dm1<-gls(mpd.obs.z~HostPlant+Site,data=dat6,na.action=na.omit)
-m1<-gls(mpd.obs.z~Site,data=dat6,na.action=na.omit)
-anova(m1)
-
-m2<-lme(mpd.obs.z~Site,random=~1|HostPlant,data=dat6,na.action=na.omit)
-anova(m2)
-
-```
-
 #Summing by community and site
-Phrag TC is sig, Phrag LUMCON nearly sig; alterniflora CERF nearly sig, alternaflora LUMCON sig; patens CERF nearly sig
 
 ```{r}
 phydist <- cophenetic(trimmednwk)
@@ -791,7 +772,6 @@ ses.mpd.result.sum
 
 
 #Summing by community
-#spartina alterniflora nearly sig
 dat.comm.sum.DM<-dat6%>%
   group_by(Community.x)%>%
   summarise(across(OTU0:OTU9,sum))
@@ -910,6 +890,14 @@ gheatmap(p, tree.heat2, offset=1, width=0.5,font.size = 2,
 # Tree with absent/present
 
 ``` {r}
+labels <- guilds%>%
+  dplyr::select(OTU,Genus,Species,trophicMode)
+labels$Genus <- stringr::str_replace(labels$Genus, 'g__', '')
+labels$Species <- stringr::str_replace(labels$Species, 's__', '')
+#labels <- labels[-c(2),]
+labels <- labels%>%
+  unite(GenusSpecies, Genus, Species)
+labels$OTUGS <- paste(labels$OTU, labels$GenusSpecies, sep="_")
 
 matrix <- dat.comm.sumt[1:31,]
 matrix2 <- apply(matrix,2,trimws)
@@ -923,11 +911,11 @@ mat <- merge(matrix4,labels,by=0)
 mat <- mat%>%
   dplyr::select(Row.names,SB_P,SB_Q,MM_P,MM_Q,DM_P,DM_Q,FF_P,FF_Q)
 
-write.csv(mat,"C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Treemat.csv")
-tree.data <- read.csv("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Treemat.csv", row.names=2, stringsAsFactors = TRUE)
+write.csv(mat,"Treemat.csv")
+tree.data <- read.csv("Treemat.csv", row.names=2, stringsAsFactors = TRUE)
 tree.data$X <- NULL
 
-cleanedtree_v2 <- read.tree("C:/Users/Kacey/Documents/Tulane/Lab/Culture/Geum roots/Data/cleanedtree_V2.nwk")
+cleanedtree_v2 <- read.tree("cleanedtree_V2.nwk")
 cleanedtree_v2$tip.label <- geumroot[[16]][match(cleanedtree_v2$tip.label, geumroot[[1]])]
 cleanedtree_v2$tip.label <- labels[[4]][match(cleanedtree_v2$tip.label, labels[[1]])]
 
@@ -937,5 +925,6 @@ tree <- plotTree.datamatrix(cleanedtree_v2,tree.data,fsize=0.5,palettes=c("YlOrR
 leg <- legend(x="topright",names(tree$colors$DM),cex=0.7,pch=22,pt.bg=tree$colors$DM,pt.cex=1.5,bty="n",title="Soddie")
 #leg2 <- legend(x="bottomright",names(tree$colors$DM_Q),cex=0.7,pch=22,pt.bg=tree$colors$DM_Q,pt.cex=1.5,bty="n",title="Saddle")
 leg2 <- legend(x=(leg$rect$left), y=(leg$rect$top-leg$rect$h),names(tree$colors$` `),cex=0.7,pch=22,pt.bg=tree$colors$` `,pt.cex=1.5,bty="n",title="Saddle")
+
 
 ```
