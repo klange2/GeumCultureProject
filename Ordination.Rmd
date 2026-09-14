@@ -262,7 +262,7 @@ hull1 <- site_scores3 %>%
   group_by(Community.x) %>%
   slice(chull(CAP1,CAP2))
 
-levels(site_scores3$Site) <- c("Soddie", "Saddle")
+levels(site_scores3$Site) <- c("Low Elevation", "High Elevation")
 colnames(site_scores3)[2] <- "Community"
 colnames(hull1)[2] <- "Community"
 

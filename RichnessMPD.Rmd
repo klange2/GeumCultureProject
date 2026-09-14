@@ -278,7 +278,9 @@ shan<-data_alphadiv%>%
   group_by(Community,Site)#%>%
   #summarise(data_shannon)
 
-levels(shan$Site) <- c("Soddie", "Saddle")
+levels(shan$Site) <- c("Low Elevation", "High Elevation")
+#levels(shan$Site)[levels(shan$Site =="Soddie")]<-"Low Elevation"
+#levels(shan$Site)[levels(shan$Site =="Saddle")]<-"High Elevation"
 
 # calculate Shannon index using vegan package
 data_shannon <- diversity(div[,3:33], index = "shannon")
@@ -605,7 +607,7 @@ mpd<-dat6%>%
   filter(is.na(mpd.obs.z.weighted)==F)#%>%
   #summarise(mpd.obs.z.weighted)
 
-levels(mpd$Site) <- c("Soddie", "Saddle")
+levels(mpd$Site) <- c("Low Elevation", "High Elevation")
 
 mpdfig<-ggplot(mpd,aes(x=Community.x,y=mpd.obs.z.weighted,color=Community.x,group=Community.x))+
     geom_boxplot()+
@@ -621,7 +623,7 @@ mntd<-dat6%>%
   filter(is.na(mntd.obs.z.weighted)==F)#%>%
   #summarise(mntd.obs.z.weighted)
 
-levels(mntd$Site) <- c("Soddie", "Saddle")
+levels(mntd$Site) <- c("Low Elevation", "High Elevation")
 
 mntdfig<-ggplot(mntd,aes(x=Community.x,y=mntd.obs.z.weighted,color=Community.x,group=Community.x))+
     geom_boxplot()+
@@ -923,9 +925,9 @@ cleanedtree_v2$tip.label <- labels[[4]][match(cleanedtree_v2$tip.label, labels[[
 colnames(tree.data) <-  c("SB"," ","MM","  ","DM","   ","FF","    ")
 
 tree <- plotTree.datamatrix(cleanedtree_v2,tree.data,fsize=0.5,palettes=c("YlOrRd","PuBuGn"),yexp=1.05,xexp=1.65)
-leg <- legend(x="topright",names(tree$colors$DM),cex=0.7,pch=22,pt.bg=tree$colors$DM,pt.cex=1.5,bty="n",title="Soddie")
+leg <- legend(x="topright",names(tree$colors$DM),cex=0.7,pch=22,pt.bg=tree$colors$DM,pt.cex=1.5,bty="n",title="Low Elevation")
 #leg2 <- legend(x="bottomright",names(tree$colors$DM_Q),cex=0.7,pch=22,pt.bg=tree$colors$DM_Q,pt.cex=1.5,bty="n",title="Saddle")
-leg2 <- legend(x=(leg$rect$left), y=(leg$rect$top-leg$rect$h),names(tree$colors$` `),cex=0.7,pch=22,pt.bg=tree$colors$` `,pt.cex=1.5,bty="n",title="Saddle")
+leg2 <- legend(x=(leg$rect$left), y=(leg$rect$top-leg$rect$h),names(tree$colors$` `),cex=0.7,pch=22,pt.bg=tree$colors$` `,pt.cex=1.5,bty="n",title="High Elevation")
 
 
 ```
