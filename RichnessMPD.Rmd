@@ -427,6 +427,27 @@ mpd.obs.z is what we want it compares the observed to the randomized data, if > 
 
 ``` {r}
 
+#only by community
+# mpdmean<-dat6%>%
+#   group_by(Community.x)%>%
+#   filter(is.na(mpd.obs.z.weighted)==F)%>%
+#   summarise(mean=mean(mpd.obs.z.weighted,na.rm=T),se=std.error(mpd.obs.z.weighted),n=n())%>%
+#   ungroup()%>%
+#   mutate(Community.x = fct_relevel(Community.x,"SB", "MM", "DM", "FF"))
+# mpdmean
+# 
+# #just by community
+# mpdcom <- ggplot(mpdmean,aes(x=Community.x,y=mean,color=Community.x))+
+#   labs(x = "",y="MPD") +
+#   theme_classic()+
+#   theme(line=element_line(linewidth=.3),text=element_text(size=12),strip.background = element_rect(colour="white", fill="white"),axis.line=element_line(color="gray30",linewidth=.5),legend.position = "none",strip.placement = "outside",panel.spacing=unit(0,"cm"),axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),panel.background = element_rect(fill = NA, color = "gray50"))+
+#   geom_hline(yintercept=0,linetype="dashed")+
+#   geom_point(size=2.75)+
+#   geom_errorbar(aes(ymax = mean+se, ymin=mean-se),width=.35,size=1) #+
+#   #facet_wrap(vars(Site),strip.position = "bottom")
+# #dev.off()
+
+#by commuity and site
 mpdmean<-dat6%>%
   group_by(Site,Community.x)%>%
   filter(is.na(mpd.obs.z.weighted)==F)%>%
