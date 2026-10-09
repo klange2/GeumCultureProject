@@ -945,7 +945,7 @@ cleanedtree_v2$tip.label <- labels[[4]][match(cleanedtree_v2$tip.label, labels[[
 
 colnames(tree.data) <-  c("SB"," ","MM","  ","DM","   ","FF","    ")
 
-tree <- plotTree.datamatrix(cleanedtree_v2,tree.data,fsize=0.5,palettes=c("YlOrRd","PuBuGn"),yexp=1.05,xexp=1.65)
+tree <- plotTree.datamatrix(cleanedtree_v2,tree.data,fsize=0.59,palettes=c("YlOrRd","PuBuGn"),yexp=1.05,xexp=1.55)
 leg <- legend(x="topright",names(tree$colors$DM),cex=0.7,pch=22,pt.bg=tree$colors$DM,pt.cex=1.5,bty="n",title="Low Elevation")
 #leg2 <- legend(x="bottomright",names(tree$colors$DM_Q),cex=0.7,pch=22,pt.bg=tree$colors$DM_Q,pt.cex=1.5,bty="n",title="Saddle")
 leg2 <- legend(x=(leg$rect$left), y=(leg$rect$top-leg$rect$h),names(tree$colors$` `),cex=0.7,pch=22,pt.bg=tree$colors$` `,pt.cex=1.5,bty="n",title="High Elevation")
